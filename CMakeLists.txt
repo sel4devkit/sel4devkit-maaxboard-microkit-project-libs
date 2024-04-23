@@ -45,11 +45,12 @@ target_include_directories(microkitdma PUBLIC
 
 add_custom_target(make-img 
     ALL COMMAND bash -c
-    "PYTHONPATH=${PYTHONPATH} MICROKIT_SDK=${MICROKIT_SDK} ${MICROKIT_TOOL} ../${MICROKIT_APP}.system --search-path ${BUILD_DIR} --board ${MICROKIT_BOARD} --config ${MICROKIT_CONFIG} -o ${IMAGE_FILE} -r ${REPORT_FILE}")
+    "${MICROKIT_SDK}/bin/microkit ../${MICROKIT_APP}.system --board ${MICROKIT_BOARD} --config ${MICROKIT_CONFIG} --output ${MICROKIT_APP}.img --report report.txt")
 
 add_executable(${MICROKIT_APP}.elf example/${PLATFORM}/${MICROKIT_APP}/${MICROKIT_APP}.c)
 add_executable(virt_rx.elf virt_rx.c sddf/util/cache.c)
 add_executable(virt_tx.elf virt_tx.c sddf/util/cache.c)
+add_executable(eth.elf ethernet/ethernet.c)
 
 # Linker - app
 target_link_options(${MICROKIT_APP}.elf PRIVATE ${LDFLAGS})
@@ -87,6 +88,19 @@ target_include_directories(virt_tx.elf PRIVATE
     "sddf/include/ethernet_config"
 )
 target_link_libraries(virt_tx.elf PRIVATE ${LIBS})
+
+# Linker - ethernet driver
+target_link_options(eth.elf PRIVATE ${LDFLAGS})
+target_compile_options(eth.elf PRIVATE ${CFLAGS})
+target_include_directories(eth.elf PRIVATE 
+    "${BOARD_DIR}/include"  
+    "libubootdrivers/include/public_api/"
+    "${PICOLIBC_DIR}/include/"
+    "sddf/include"
+    "sddf/include/ethernet_config"
+    "ethernet"
+)
+target_link_libraries(eth.elf PRIVATE ${LIBS})
 
 
 
