@@ -38,10 +38,18 @@ set(libUbootPlatform ${PLATFORM})
 add_subdirectory(libubootdrivers)
 add_subdirectory(libutils)
 add_subdirectory(libmicrokitdma)
+add_subdirectory(liblwip)
 target_include_directories(microkitdma PUBLIC 
     "${BOARD_DIR}/include" 
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/")
+target_include_directories(lwip PUBLIC
+    "${BOARD_DIR}/include" 
+    "libubootdrivers/include/public_api/"
+    "${PICOLIBC_DIR}/include/"
+    "sddf/include"
+    "sddf/include/lwip"
+    "sddf/include/ethernet_config")
 
 add_custom_target(make-img 
     ALL COMMAND bash -c
@@ -51,6 +59,7 @@ add_executable(${MICROKIT_APP}.elf example/${PLATFORM}/${MICROKIT_APP}/${MICROKI
 add_executable(virt_rx.elf virt_rx.c sddf/util/cache.c)
 add_executable(virt_tx.elf virt_tx.c sddf/util/cache.c)
 add_executable(eth.elf ethernet/ethernet.c)
+add_executable(lwip.elf lwip.c utilization_socket.c udp_echo_socket.c timer/client/client.c)
 
 # Linker - app
 target_link_options(${MICROKIT_APP}.elf PRIVATE ${LDFLAGS})
@@ -101,6 +110,19 @@ target_include_directories(eth.elf PRIVATE
     "ethernet"
 )
 target_link_libraries(eth.elf PRIVATE ${LIBS})
+
+# Linker - lwip
+target_link_options(lwip.elf PRIVATE ${LDFLAGS})
+target_compile_options(lwip.elf PRIVATE ${CFLAGS})
+target_include_directories(lwip.elf PRIVATE 
+    "${BOARD_DIR}/include"  
+    "libubootdrivers/include/public_api/"
+    "${PICOLIBC_DIR}/include/"
+    "sddf/include"
+    "sddf/include/ethernet_config"
+)
+target_link_libraries(lwip.elf PUBLIC lwip)
+target_link_libraries(lwip.elf PRIVATE ${LIBS})
 
 
 
