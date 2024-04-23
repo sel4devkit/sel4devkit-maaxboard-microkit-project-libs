@@ -49,6 +49,7 @@ add_custom_target(make-img
 
 add_executable(${MICROKIT_APP}.elf example/${PLATFORM}/${MICROKIT_APP}/${MICROKIT_APP}.c)
 add_executable(virt_rx.elf virt_rx.c sddf/util/cache.c)
+add_executable(virt_tx.elf virt_tx.c sddf/util/cache.c)
 
 # Linker - app
 target_link_options(${MICROKIT_APP}.elf PRIVATE ${LDFLAGS})
@@ -74,6 +75,18 @@ target_include_directories(virt_rx.elf PRIVATE
     "sddf/include/ethernet_config"
 )
 target_link_libraries(virt_rx.elf PRIVATE ${LIBS})
+
+# Linker - virt_tx
+target_link_options(virt_tx.elf PRIVATE ${LDFLAGS})
+target_compile_options(virt_tx.elf PRIVATE ${CFLAGS})
+target_include_directories(virt_tx.elf PRIVATE 
+    "${BOARD_DIR}/include"  
+    "libubootdrivers/include/public_api/"
+    "${PICOLIBC_DIR}/include/"
+    "sddf/include"
+    "sddf/include/ethernet_config"
+)
+target_link_libraries(virt_tx.elf PRIVATE ${LIBS})
 
 
 
