@@ -8,7 +8,7 @@ project(${MICROKIT_APP} LANGUAGES C)
 
 set(LD ${TOOLCHAIN}-ld)
 set(CMAKE_ASM_COMPILER ${TOOLCHAIN}-as)
-set(MICROKIT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(MICROKIT_DIR /packages/microkit/auts_microkit_latest_plus_big_stack)
 
 # Microkit specific information
 set(MICROKIT_SDK ${MICROKIT_DIR}/release/microkit-sdk-1.2.6)
@@ -48,19 +48,32 @@ add_custom_target(make-img
     "PYTHONPATH=${PYTHONPATH} MICROKIT_SDK=${MICROKIT_SDK} ${MICROKIT_TOOL} ../${MICROKIT_APP}.system --search-path ${BUILD_DIR} --board ${MICROKIT_BOARD} --config ${MICROKIT_CONFIG} -o ${IMAGE_FILE} -r ${REPORT_FILE}")
 
 add_executable(${MICROKIT_APP}.elf example/${PLATFORM}/${MICROKIT_APP}/${MICROKIT_APP}.c)
+add_executable(virt_rx.elf virt_rx.c sddf/util/cache.c)
 
-# Linker
+# Linker - app
 target_link_options(${MICROKIT_APP}.elf PRIVATE ${LDFLAGS})
 target_compile_options(${MICROKIT_APP}.elf PRIVATE ${CFLAGS})
 target_include_directories(${MICROKIT_APP}.elf PRIVATE 
     "${BOARD_DIR}/include" 
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/"
-    )
+)
 target_link_libraries(${MICROKIT_APP}.elf PUBLIC ubootdrivers utils microkitdma)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(${MICROKIT_APP}.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
 target_link_libraries(${MICROKIT_APP}.elf PRIVATE ${LIBS})
+
+# Linker - virt_rx
+target_link_options(virt_rx.elf PRIVATE ${LDFLAGS})
+target_compile_options(virt_rx.elf PRIVATE ${CFLAGS})
+target_include_directories(virt_rx.elf PRIVATE 
+    "${BOARD_DIR}/include"  
+    "libubootdrivers/include/public_api/"
+    "${PICOLIBC_DIR}/include/"
+    "sddf/include"
+    "sddf/include/ethernet_config"
+)
+target_link_libraries(virt_rx.elf PRIVATE ${LIBS})
 
 
 
