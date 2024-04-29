@@ -56,11 +56,12 @@ add_custom_target(make-img
     "${MICROKIT_SDK}/bin/microkit ../${MICROKIT_APP}.system --board ${MICROKIT_BOARD} --config ${MICROKIT_CONFIG} --output ${MICROKIT_APP}.img --report report.txt")
 
 add_executable(${MICROKIT_APP}.elf example/${PLATFORM}/${MICROKIT_APP}/${MICROKIT_APP}.c)
-add_executable(virt_rx.elf virt_rx.c sddf/util/cache.c)
-add_executable(virt_tx.elf virt_tx.c sddf/util/cache.c)
+add_executable(virt_rx.elf network/virt_rx.c sddf/util/cache.c)
+add_executable(virt_tx.elf network/virt_tx.c sddf/util/cache.c)
 add_executable(eth.elf ethernet/ethernet.c)
 add_executable(lwip.elf lwip.c utilization_socket.c udp_echo_socket.c timer/client/client.c)
-add_executable(copy.elf copy.c)
+add_executable(copy.elf network/copy.c)
+add_executable(arp.elf network/arp.c)
 
 # Linker - app
 target_link_options(${MICROKIT_APP}.elf PRIVATE ${LDFLAGS})
@@ -137,6 +138,19 @@ target_include_directories(copy.elf PRIVATE
     "ethernet"
 )
 target_link_libraries(copy.elf PRIVATE ${LIBS})
+
+# Linker - arp
+target_link_options(arp.elf PRIVATE ${LDFLAGS})
+target_compile_options(arp.elf PRIVATE ${CFLAGS})
+target_include_directories(arp.elf PRIVATE 
+    "${BOARD_DIR}/include"  
+    "libubootdrivers/include/public_api/"
+    "${PICOLIBC_DIR}/include/"
+    "sddf/include"
+    "sddf/include/ethernet_config"
+    "ethernet"
+)
+target_link_libraries(arp.elf PRIVATE ${LIBS})
 
 
 
