@@ -60,6 +60,7 @@ add_executable(virt_rx.elf virt_rx.c sddf/util/cache.c)
 add_executable(virt_tx.elf virt_tx.c sddf/util/cache.c)
 add_executable(eth.elf ethernet/ethernet.c)
 add_executable(lwip.elf lwip.c utilization_socket.c udp_echo_socket.c timer/client/client.c)
+add_executable(copy.elf copy.c)
 
 # Linker - app
 target_link_options(${MICROKIT_APP}.elf PRIVATE ${LDFLAGS})
@@ -123,6 +124,19 @@ target_include_directories(lwip.elf PRIVATE
 )
 target_link_libraries(lwip.elf PUBLIC lwip)
 target_link_libraries(lwip.elf PRIVATE ${LIBS})
+
+# Linker - copy
+target_link_options(copy.elf PRIVATE ${LDFLAGS})
+target_compile_options(copy.elf PRIVATE ${CFLAGS})
+target_include_directories(copy.elf PRIVATE 
+    "${BOARD_DIR}/include"  
+    "libubootdrivers/include/public_api/"
+    "${PICOLIBC_DIR}/include/"
+    "sddf/include"
+    "sddf/include/ethernet_config"
+    "ethernet"
+)
+target_link_libraries(copy.elf PRIVATE ${LIBS})
 
 
 
