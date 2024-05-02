@@ -277,6 +277,7 @@ static void netif_status_callback(struct netif *netif)
 
 void init(void)
 {
+    printf("lwip init\n");
     cli_queue_init_sys(microkit_name, &state.rx_queue, rx_free, rx_active, &state.tx_queue, tx_free, tx_active);
     net_buffers_init(&state.tx_queue, 0);
 

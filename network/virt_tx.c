@@ -135,6 +135,7 @@ void notified(microkit_channel ch)
 
 void init(void)
 {
+    printf("virt_tx init\n");
     net_queue_init(&state.tx_queue_drv, (net_queue_t *)tx_free_drv, (net_queue_t *)tx_active_drv, TX_QUEUE_SIZE_DRIV);
     virt_queue_init_sys(microkit_name, state.tx_queue_clients, tx_free_arp, tx_active_arp);
 
