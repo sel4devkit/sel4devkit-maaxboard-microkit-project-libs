@@ -59,7 +59,7 @@ add_executable(${MICROKIT_APP}.elf example/${PLATFORM}/${MICROKIT_APP}/${MICROKI
 add_executable(virt_rx.elf network/virt_rx.c sddf/util/cache.c)
 add_executable(virt_tx.elf network/virt_tx.c sddf/util/cache.c)
 add_executable(eth.elf ethernet/ethernet.c)
-add_executable(lwip.elf lwip.c utilization_socket.c udp_echo_socket.c timer/client/client.c)
+add_executable(lwip.elf lwip/lwip.c lwip/utilization_socket.c lwip/udp_echo_socket.c timer/client/client.c)
 add_executable(copy.elf network/copy.c)
 add_executable(arp.elf network/arp.c)
 
@@ -71,7 +71,7 @@ target_include_directories(${MICROKIT_APP}.elf PRIVATE
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/"
 )
-target_link_libraries(${MICROKIT_APP}.elf PUBLIC ubootdrivers utils microkitdma)
+target_link_libraries(${MICROKIT_APP}.elf PUBLIC ubootdrivers utils microkitdma lwip)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(${MICROKIT_APP}.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
 target_link_libraries(${MICROKIT_APP}.elf PRIVATE ${LIBS})
