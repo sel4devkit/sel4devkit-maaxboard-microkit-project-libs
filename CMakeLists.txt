@@ -15,7 +15,7 @@ set(MICROKIT_SDK ${MICROKIT_DIR}/release/microkit-sdk-1.2.6)
 set(MICROKIT_BOARD ${PLATFORM})
 set(MICROKIT_CONFIG debug)
 # Set python variables
-set(PYTHONPATH ${MICROKIT_DIR}/tool)
+set(PYTHONPATH /usr/bin/python)
 set(MICROKIT_TOOL "python3 -m microkit")
 # Set dtb path
 set(DTB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/boards/${PLATFORM}.dtb)
@@ -28,9 +28,10 @@ set(LDFLAGS -L${BOARD_DIR}/lib -nostdlib)
 set(LIBS -lmicrokit -Tmicrokit.ld -lgcc -L${PICOLIBC_DIR}/lib -lc -lm -lgcc)
 
 set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/example/${PLATFORM}/${MICROKIT_APP})
-set(BUILD_DIR ${PROJECT_DIR}/example-build)
-set(IMAGE_FILE ${BUILD_DIR}/sel4_image.img)
-set(REPORT_FILE ${BUILD_DIR}/report.txt)
+set(BUILD_DIR ${PROJECT_DIR}/build)
+set(EXAMPLE_BUILD_DIR ${PROJECT_DIR}/example-build)
+set(IMAGE_FILE ${EXAMPLE_BUILD_DIR}/sel4_image.img)
+set(REPORT_FILE ${EXAMPLE_BUILD_DIR}/report.txt)
 
 set(libUbootPlatform ${PLATFORM})
 
@@ -51,9 +52,13 @@ target_include_directories(lwip PUBLIC
     "sddf/include/lwip"
     "sddf/include/ethernet_config")
 
-add_custom_target(make-img 
-    ALL COMMAND bash -c
-    "${MICROKIT_SDK}/bin/microkit ../${MICROKIT_APP}.system --board ${MICROKIT_BOARD} --config ${MICROKIT_CONFIG} --output ${MICROKIT_APP}.img --report report.txt")
+# List of image files
+set(IMAGES "${MICROKIT_APP}.elf" "virt_rx.elf" "virt_tx.elf" "eth.elf" "lwip.elf" "copy.elf" "arp.elf" "idle.elf" "benchmark.elf" "timer.elf")
+list(TRANSFORM IMAGES PREPEND "${BUILD_DIR}/")
+
+# Custom targets for ImageFile and ReportFile
+# add_custom_target(${IMAGE_FILE} ALL DEPENDS ${IMAGES} "${SYSTEM_FILE}")
+# add_custom_target(${REPORT_FILE} ALL DEPENDS ${IMAGES} "${SYSTEM_FILE}")
 
 add_executable(${MICROKIT_APP}.elf example/${PLATFORM}/${MICROKIT_APP}/${MICROKIT_APP}.c)
 add_executable(virt_rx.elf network/virt_rx.c sddf/util/cache.c)
@@ -62,6 +67,9 @@ add_executable(eth.elf ethernet/ethernet.c)
 add_executable(lwip.elf lwip/lwip.c lwip/utilization_socket.c lwip/udp_echo_socket.c timer/client/client.c)
 add_executable(copy.elf network/copy.c)
 add_executable(arp.elf network/arp.c)
+add_executable(idle.elf benchmark/idle.c)
+add_executable(benchmark.elf benchmark/benchmark.c)
+add_executable(timer.elf drivers/clock/imx/timer.c)
 
 # Linker - app
 target_link_options(${MICROKIT_APP}.elf PRIVATE ${LDFLAGS})
@@ -151,6 +159,68 @@ target_include_directories(arp.elf PRIVATE
     "ethernet"
 )
 target_link_libraries(arp.elf PRIVATE ${LIBS})
+
+# Linker - idle
+target_link_options(idle.elf PRIVATE ${LDFLAGS})
+target_compile_options(idle.elf PRIVATE ${CFLAGS})
+target_include_directories(idle.elf PRIVATE 
+    "${BOARD_DIR}/include"  
+    "libubootdrivers/include/public_api/"
+    "${PICOLIBC_DIR}/include/"
+    "sddf/include"
+    "sddf/include/ethernet_config"
+    "ethernet"
+)
+target_link_libraries(idle.elf PRIVATE ${LIBS})
+
+# Linker - benchmark
+target_link_options(benchmark.elf PRIVATE ${LDFLAGS})
+target_compile_options(benchmark.elf PRIVATE ${CFLAGS})
+target_include_directories(benchmark.elf PRIVATE 
+    "${BOARD_DIR}/include"  
+    "libubootdrivers/include/public_api/"
+    "${PICOLIBC_DIR}/include/"
+    "sddf/include"
+    "sddf/include/ethernet_config"
+    "ethernet"
+)
+target_link_libraries(benchmark.elf PRIVATE ${LIBS})
+
+# Linker - timer
+target_link_options(timer.elf PRIVATE ${LDFLAGS})
+target_compile_options(timer.elf PRIVATE ${CFLAGS})
+target_include_directories(timer.elf PRIVATE 
+    "${BOARD_DIR}/include"  
+    "libubootdrivers/include/public_api/"
+    "${PICOLIBC_DIR}/include/"
+    "sddf/include"
+    "sddf/include/ethernet_config"
+    "ethernet"
+)
+target_link_libraries(timer.elf PRIVATE ${LIBS})
+
+# # First define a custom command that creates the image
+# add_custom_command(
+#     OUTPUT "${MICROKIT_APP}.img" "report.txt"  # Assuming these are the output files
+#     COMMAND bash -c "${MICROKIT_SDK}/bin/microkit ../${MICROKIT_APP}.system --search-path ${EXAMPLE_BUILD_DIR} --board ${MICROKIT_BOARD} --config ${MICROKIT_CONFIG} --output ${IMAGE_FILE} --report ${REPORT_FILE}"
+#     DEPENDS ${IMAGES} "${SYSTEM_FILE}"
+#     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} # It's important to set the correct working directory
+#     COMMENT "Generating image and report"
+# )
+
+# # Then define a custom target that depends on the custom command
+# add_custom_target(make-img ALL
+#     DEPENDS "${MICROKIT_APP}.img" "report.txt"
+# )
+
+
+add_custom_target(make-img 
+    ALL DEPENDS ${IMAGES} "${SYSTEM_FILE}" COMMAND bash -c
+    "${MICROKIT_SDK}/bin/microkit ../${MICROKIT_APP}.system --search-path ${EXAMPLE_BUILD_DIR} --board ${MICROKIT_BOARD} --config ${MICROKIT_CONFIG} --output ${IMAGE_FILE} --report ${REPORT_FILE}")
+
+# add_custom_target(make-img 
+#     ALL COMMAND bash -c
+#     "PYTHONPATH=${PYTHONPATH} MICROKIT_SDK=${MICROKIT_SDK} ${MICROKIT_TOOL} ../${MICROKIT_APP}.system --search-path ${BUILD_DIR} --board ${MICROKIT_BOARD} --config ${MICROKIT_CONFIG} -o ${IMAGE_FILE} -r ${REPORT_FILE}")
 
 
 

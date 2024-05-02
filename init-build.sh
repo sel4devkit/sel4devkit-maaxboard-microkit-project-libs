@@ -65,4 +65,4 @@ mkdir example/maaxboard/$MICROKIT_APP/example-build
 cd example/maaxboard/$MICROKIT_APP/build
 cmake -DMICROKIT_APP=$MICROKIT_APP -DPLATFORM=$PLATFORM $microkit_path
 make 
-echo "Built image is here: ${microkit_path}/example/${PLATFORM}/uboot-driver-example/example-build/sel4_image.img" 
+echo "Built image is here: ${microkit_path}/example/${PLATFORM}/${MICROKIT_APP}/example-build/sel4_image.img" 
