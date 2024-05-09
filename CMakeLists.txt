@@ -70,6 +70,7 @@ add_executable(arp.elf network/arp.c)
 add_executable(idle.elf benchmark/idle.c)
 add_executable(benchmark.elf benchmark/benchmark.c)
 add_executable(timer.elf drivers/clock/imx/timer.c)
+add_executable(transmitter.elf Transmitter/src/transmitter.c)
 
 # Linker - app
 target_link_options(${MICROKIT_APP}.elf PRIVATE ${LDFLAGS})
@@ -198,6 +199,19 @@ target_include_directories(timer.elf PRIVATE
     "ethernet"
 )
 target_link_libraries(timer.elf PRIVATE ${LIBS})
+
+# Linker - transmitter
+target_link_options(transmitter.elf PRIVATE ${LDFLAGS})
+target_compile_options(transmitter.elf PRIVATE ${CFLAGS})
+target_include_directories(transmitter.elf PRIVATE 
+    "${BOARD_DIR}/include"  
+    "libubootdrivers/include/public_api/"
+    "${PICOLIBC_DIR}/include/"
+    "sddf/include"
+    "sddf/include/ethernet_config"
+    "ethernet"
+)
+target_link_libraries(transmitter.elf PRIVATE ${LIBS})
 
 # # First define a custom command that creates the image
 # add_custom_command(
