@@ -53,7 +53,7 @@ target_include_directories(lwip PUBLIC
     "sddf/include/ethernet_config")
 
 # List of image files
-set(IMAGES "${MICROKIT_APP}.elf" "virt_rx.elf" "virt_tx.elf" "eth.elf" "lwip.elf" "copy.elf" "arp.elf" "idle.elf" "benchmark.elf" "timer.elf")
+set(IMAGES "${MICROKIT_APP}.elf" "virt_rx.elf" "virt_tx.elf" "eth.elf" "lwip.elf" "copy.elf" "arp.elf" "idle.elf" "benchmark.elf" "timer.elf" "transmitter.elf")
 list(TRANSFORM IMAGES PREPEND "${BUILD_DIR}/")
 
 # Custom targets for ImageFile and ReportFile
@@ -211,6 +211,7 @@ target_include_directories(transmitter.elf PRIVATE
     "sddf/include/ethernet_config"
     "ethernet"
 )
+target_link_libraries(transmitter.elf PUBLIC ubootdrivers utils microkitdma lwip)
 target_link_libraries(transmitter.elf PRIVATE ${LIBS})
 
 # # First define a custom command that creates the image

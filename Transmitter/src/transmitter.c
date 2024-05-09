@@ -4,20 +4,21 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include <camkes.h>
+#include <microkit.h>
 #include <autoconf.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <picoserver.h>
+// #include <picoserver.h>
 #include <assert.h>
+#include <stdio_microkit.h>
 
-#include <camkes/io.h>
-#include <sel4platsupport/io.h>
-#include <platsupport/delay.h>
+// #include <camkes/io.h>
+// #include <sel4platsupport/io.h>
+// #include <platsupport/delay.h>
 
 #include <uboot_drivers.h>
-#include <mmc_platform_devices.h>
+// #include <mmc_platform_devices.h>
 
 #define LOG_FILENAME "transmitter_log.txt" // Filename of the log file to use
 #define LOG_FILE_DEVICE "mmc 0:2"          // The U-Boot designation of the disk partition to write to
@@ -186,7 +187,7 @@ void write_pending_mmc_log(void)
 }
 
 
-int run(void)
+void init(void)
 {
     /* Perform initialisation prior to the main loop (in the following order):
      *
@@ -200,25 +201,25 @@ int run(void)
      *    delete any previous log file from the MMC/SD card using the U-Boot
      */
 
-    /* Listen for connections on the ethernet socket we wish to transmit to */
-    listen_for_socket();
+    // /* Listen for connections on the ethernet socket we wish to transmit to */
+    // listen_for_socket();
 
-    /* Get the CAmkES IO operations (needed by the U-Boot driver library) */
-    ps_io_ops_t io_ops;
-    if (camkes_io_ops(&io_ops)) {
-        assert(!"Failed to initialize io_ops");
-    }
+    // /* Get the CAmkES IO operations (needed by the U-Boot driver library) */
+    // ps_io_ops_t io_ops;
+    // if (camkes_io_ops(&io_ops)) {
+    //     assert(!"Failed to initialize io_ops");
+    // }
 
-    /* Start the U-Boot driver library */
-    const char *const_reg_paths[] = REG_PATHS;
-    const char *const_dev_paths[] = DEV_PATHS;
-    assert(!initialise_uboot_drivers(
-        /* Provide the platform support IO operations */
-        &io_ops,
-        /* List the device tree paths that need to be memory mapped */
-        const_reg_paths, REG_PATH_COUNT,
-        /* List the device tree paths for the devices */
-        const_dev_paths, DEV_PATH_COUNT));
+    // /* Start the U-Boot driver library */
+    // const char *const_reg_paths[] = REG_PATHS;
+    // const char *const_dev_paths[] = DEV_PATHS;
+    // assert(!initialise_uboot_drivers(
+    //     /* Provide the platform support IO operations */
+    //     &io_ops,
+    //     /* List the device tree paths that need to be memory mapped */
+    //     const_reg_paths, REG_PATH_COUNT,
+    //     /* List the device tree paths for the devices */
+    //     const_dev_paths, DEV_PATH_COUNT));
 
     /* Delete any existing log file to ensure we start with an empty file */
     char uboot_cmd[64];
@@ -239,11 +240,14 @@ int run(void)
             receive_data_from_crypto_component();
         }
 
-        /* Send any received encrypted characters to the socket (if connected) */
-        if (eth_socket >= 0 && eth_pending_length > 0) {
-            idle_cycle = false;
-            transmit_pending_eth_buffer();
-        }
+        // /* Send any received encrypted characters to the socket (if connected) */
+        // if (eth_socket >= 0 && eth_pending_length > 0) {
+        //     idle_cycle = false;
+        //     transmit_pending_eth_buffer();
+        // }
+
+        /* Send encrypted data over the network */
+        tcp_write()
 
         /* Write any received encrypted characters to the log file (if sufficient
          * time has passed from the previous write) */

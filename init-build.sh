@@ -58,8 +58,8 @@ fi
 
 # Build application 
 cd ../../microkit
-rm -rf example/maaxboard/$MICROKIT_APP/build
-mkdir example/maaxboard/$MICROKIT_APP/build
+# rm -rf example/maaxboard/$MICROKIT_APP/build
+# mkdir example/maaxboard/$MICROKIT_APP/build
 rm -rf example/maaxboard/$MICROKIT_APP/example-build
 mkdir example/maaxboard/$MICROKIT_APP/example-build
 cd example/maaxboard/$MICROKIT_APP/build
