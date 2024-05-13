@@ -53,24 +53,14 @@ target_include_directories(lwip PUBLIC
     "sddf/include/ethernet_config")
 
 # List of image files
-set(IMAGES "${MICROKIT_APP}.elf" "virt_rx.elf" "virt_tx.elf" "eth.elf" "lwip.elf" "copy.elf" "arp.elf" "idle.elf" "benchmark.elf" "timer.elf" "transmitter.elf")
+set(IMAGES "${MICROKIT_APP}.elf" "eth.elf" "lwip.elf" "timer.elf")
 list(TRANSFORM IMAGES PREPEND "${BUILD_DIR}/")
 
-# Custom targets for ImageFile and ReportFile
-# add_custom_target(${IMAGE_FILE} ALL DEPENDS ${IMAGES} "${SYSTEM_FILE}")
-# add_custom_target(${REPORT_FILE} ALL DEPENDS ${IMAGES} "${SYSTEM_FILE}")
-
 add_executable(${MICROKIT_APP}.elf example/${PLATFORM}/${MICROKIT_APP}/${MICROKIT_APP}.c)
-add_executable(virt_rx.elf network/virt_rx.c sddf/util/cache.c)
-add_executable(virt_tx.elf network/virt_tx.c sddf/util/cache.c)
-add_executable(eth.elf ethernet/ethernet.c)
-add_executable(lwip.elf lwip/lwip.c lwip/utilization_socket.c lwip/udp_echo_socket.c timer/client/client.c)
-add_executable(copy.elf network/copy.c)
-add_executable(arp.elf network/arp.c)
-add_executable(idle.elf benchmark/idle.c)
-add_executable(benchmark.elf benchmark/benchmark.c)
+add_executable(eth.elf ethernet/ethernet.c ethernet/shared_ringbuffer.c)
+add_executable(lwip.elf lwip/lwip.c lwip/utilization_socket.c lwip/udp_echo_socket.c timer/timer.c ethernet/shared_ringbuffer.c)
 add_executable(timer.elf drivers/clock/imx/timer.c)
-add_executable(transmitter.elf Transmitter/src/transmitter.c)
+
 
 # Linker - app
 target_link_options(${MICROKIT_APP}.elf PRIVATE ${LDFLAGS})
@@ -85,30 +75,6 @@ get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIR
 target_include_directories(${MICROKIT_APP}.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
 target_link_libraries(${MICROKIT_APP}.elf PRIVATE ${LIBS})
 
-# Linker - virt_rx
-target_link_options(virt_rx.elf PRIVATE ${LDFLAGS})
-target_compile_options(virt_rx.elf PRIVATE ${CFLAGS})
-target_include_directories(virt_rx.elf PRIVATE 
-    "${BOARD_DIR}/include"  
-    "libubootdrivers/include/public_api/"
-    "${PICOLIBC_DIR}/include/"
-    "sddf/include"
-    "sddf/include/ethernet_config"
-)
-target_link_libraries(virt_rx.elf PRIVATE ${LIBS})
-
-# Linker - virt_tx
-target_link_options(virt_tx.elf PRIVATE ${LDFLAGS})
-target_compile_options(virt_tx.elf PRIVATE ${CFLAGS})
-target_include_directories(virt_tx.elf PRIVATE 
-    "${BOARD_DIR}/include"  
-    "libubootdrivers/include/public_api/"
-    "${PICOLIBC_DIR}/include/"
-    "sddf/include"
-    "sddf/include/ethernet_config"
-)
-target_link_libraries(virt_tx.elf PRIVATE ${LIBS})
-
 # Linker - ethernet driver
 target_link_options(eth.elf PRIVATE ${LDFLAGS})
 target_compile_options(eth.elf PRIVATE ${CFLAGS})
@@ -119,6 +85,7 @@ target_include_directories(eth.elf PRIVATE
     "sddf/include"
     "sddf/include/ethernet_config"
     "ethernet"
+    "include"
 )
 target_link_libraries(eth.elf PRIVATE ${LIBS})
 
@@ -131,61 +98,10 @@ target_include_directories(lwip.elf PRIVATE
     "${PICOLIBC_DIR}/include/"
     "sddf/include"
     "sddf/include/ethernet_config"
+    "include"
 )
 target_link_libraries(lwip.elf PUBLIC lwip)
 target_link_libraries(lwip.elf PRIVATE ${LIBS})
-
-# Linker - copy
-target_link_options(copy.elf PRIVATE ${LDFLAGS})
-target_compile_options(copy.elf PRIVATE ${CFLAGS})
-target_include_directories(copy.elf PRIVATE 
-    "${BOARD_DIR}/include"  
-    "libubootdrivers/include/public_api/"
-    "${PICOLIBC_DIR}/include/"
-    "sddf/include"
-    "sddf/include/ethernet_config"
-    "ethernet"
-)
-target_link_libraries(copy.elf PRIVATE ${LIBS})
-
-# Linker - arp
-target_link_options(arp.elf PRIVATE ${LDFLAGS})
-target_compile_options(arp.elf PRIVATE ${CFLAGS})
-target_include_directories(arp.elf PRIVATE 
-    "${BOARD_DIR}/include"  
-    "libubootdrivers/include/public_api/"
-    "${PICOLIBC_DIR}/include/"
-    "sddf/include"
-    "sddf/include/ethernet_config"
-    "ethernet"
-)
-target_link_libraries(arp.elf PRIVATE ${LIBS})
-
-# Linker - idle
-target_link_options(idle.elf PRIVATE ${LDFLAGS})
-target_compile_options(idle.elf PRIVATE ${CFLAGS})
-target_include_directories(idle.elf PRIVATE 
-    "${BOARD_DIR}/include"  
-    "libubootdrivers/include/public_api/"
-    "${PICOLIBC_DIR}/include/"
-    "sddf/include"
-    "sddf/include/ethernet_config"
-    "ethernet"
-)
-target_link_libraries(idle.elf PRIVATE ${LIBS})
-
-# Linker - benchmark
-target_link_options(benchmark.elf PRIVATE ${LDFLAGS})
-target_compile_options(benchmark.elf PRIVATE ${CFLAGS})
-target_include_directories(benchmark.elf PRIVATE 
-    "${BOARD_DIR}/include"  
-    "libubootdrivers/include/public_api/"
-    "${PICOLIBC_DIR}/include/"
-    "sddf/include"
-    "sddf/include/ethernet_config"
-    "ethernet"
-)
-target_link_libraries(benchmark.elf PRIVATE ${LIBS})
 
 # Linker - timer
 target_link_options(timer.elf PRIVATE ${LDFLAGS})
@@ -199,20 +115,6 @@ target_include_directories(timer.elf PRIVATE
     "ethernet"
 )
 target_link_libraries(timer.elf PRIVATE ${LIBS})
-
-# Linker - transmitter
-target_link_options(transmitter.elf PRIVATE ${LDFLAGS})
-target_compile_options(transmitter.elf PRIVATE ${CFLAGS})
-target_include_directories(transmitter.elf PRIVATE 
-    "${BOARD_DIR}/include"  
-    "libubootdrivers/include/public_api/"
-    "${PICOLIBC_DIR}/include/"
-    "sddf/include"
-    "sddf/include/ethernet_config"
-    "ethernet"
-)
-target_link_libraries(transmitter.elf PUBLIC ubootdrivers utils microkitdma lwip)
-target_link_libraries(transmitter.elf PRIVATE ${LIBS})
 
 # # First define a custom command that creates the image
 # add_custom_command(

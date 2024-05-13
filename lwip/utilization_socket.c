@@ -13,21 +13,14 @@
 #include <string.h>
 #include <microkit.h>
 
-#include "lwip/ip.h"
-#include "lwip/pbuf.h"
-#include "lwip/tcp.h"
+#include <lwip/ip.h>
+#include <lwip/pbuf.h>
+#include <lwip/tcp.h>
 
-#include <sddf/util/util.h>
-#include <sddf/benchmark/bench.h>
+#include <echo.h>
 
-#include "echo.h"
-
-#define START_PMU 4
+#define START_PMU 3
 #define STOP_PMU 5
-
-#define MAX_PACKET_SIZE 0x1000
-
-uintptr_t cyclecounters_vaddr;
 
 /* This file implements a TCP based utilization measurment process that starts
  * and stops utilization measurements based on a client's requests.
@@ -56,6 +49,8 @@ uintptr_t cyclecounters_vaddr;
  */
 
 static struct tcp_pcb *utiliz_socket;
+uintptr_t data_packet;
+uintptr_t cyclecounters_vaddr;
 
 #define WHOAMI "100 IPBENCH V1.0\n"
 #define HELLO "HELLO\n"
@@ -66,6 +61,7 @@ static struct tcp_pcb *utiliz_socket;
 #define START "START\n"
 #define STOP "STOP\n"
 #define QUIT "QUIT\n"
+#define KBD "KBD\n"
 #define RESPONSE "220 VALID DATA (Data to follow)\n"    \
     "Content-length: %d\n"                              \
     "%s\n"
@@ -81,17 +77,22 @@ static struct tcp_pcb *utiliz_socket;
     ","STR(y)","STR(z)
 
 
-struct bench *bench;
+#define ULONG_MAX 0xffffffffffffffff
+
+struct bench *bench = (void *)(uintptr_t)0x5010000;
+struct tcb_pcb *curr_pcb;
+#define BUFLEN 7
+char kbd_buf[BUFLEN];
+int buf_index = 0;
 
 uint64_t start;
 uint64_t idle_ccount_start;
-
-char data_packet_str[MAX_PACKET_SIZE];
+uint64_t idle_overflow_start;
 
 
 static inline void my_reverse(char s[])
 {
-    unsigned int i, j;
+    int i, j;
     char c;
 
     for (i = 0, j = strlen(s)-1; i<j; i++, j--) {
@@ -103,7 +104,7 @@ static inline void my_reverse(char s[])
 
 static inline void my_itoa(uint64_t n, char s[])
 {
-    unsigned int i;
+    int i;
     uint64_t sign;
 
     if ((sign = n) < 0)  /* record sign */
@@ -130,63 +131,101 @@ static err_t utilization_recv_callback(void *arg, struct tcp_pcb *pcb, struct pb
         return ERR_OK;
     }
 
-    pbuf_copy_partial(p, (void *)data_packet_str, p->tot_len, 0);
+    pbuf_copy_partial(p, data_packet, p->tot_len, 0);
     err_t error;
 
-    if (msg_match(data_packet_str, HELLO)) {
+    if (msg_match(data_packet, HELLO)) {
         error = tcp_write(pcb, OK_READY, strlen(OK_READY), TCP_WRITE_FLAG_COPY);
-        if (error) printf("Failed to send OK_READY message through utilization peer\n");
-    } else if (msg_match(data_packet_str, LOAD)) {
-        error = tcp_write(pcb, OK, strlen(OK), TCP_WRITE_FLAG_COPY);
-        if (error) printf("Failed to send OK message through utilization peer\n");
-    } else if (msg_match(data_packet_str, SETUP)) {
-        error = tcp_write(pcb, OK, strlen(OK), TCP_WRITE_FLAG_COPY);
-        if (error) printf("Failed to send OK message through utilization peer\n");
-    } else if (msg_match(data_packet_str, START)) {
-        printf("%s measurement starting... \n", microkit_name);
-        if (!strcmp(microkit_name, "client0")) {
-            start = __atomic_load_n(&bench->ts, __ATOMIC_RELAXED);
-            idle_ccount_start = __atomic_load_n(&bench->ccount, __ATOMIC_RELAXED);
-            microkit_notify(START_PMU);
+        if (error) {
+            microkit_dbg_puts("Failed to send OK_READY message through utilization peer");
         }
-    } else if (msg_match(data_packet_str, STOP)) {
-        printf("%s measurement finished \n", microkit_name);
-
-        uint64_t total = 0, idle = 0;
-
-        if (!strcmp(microkit_name, "client0")) {
-            total = __atomic_load_n(&bench->ts, __ATOMIC_RELAXED) - start;
-            idle = __atomic_load_n(&bench->ccount, __ATOMIC_RELAXED) - idle_ccount_start;
+    } else if (msg_match(data_packet, LOAD)) {
+        error = tcp_write(pcb, OK, strlen(OK), TCP_WRITE_FLAG_COPY);
+        if (error) {
+            microkit_dbg_puts("Failed to send OK message through utilization peer");
         }
+    } else if (msg_match(data_packet, SETUP)) {
+        error = tcp_write(pcb, OK, strlen(OK), TCP_WRITE_FLAG_COPY);
+        if (error) {
+            microkit_dbg_puts("Failed to send OK message through utilization peer");
+        }
+    } else if (msg_match(data_packet, START)) {
+        printf("measurement starting... \n");
 
-        char tbuf[21];
+        // start = bench->ts;
+        // idle_ccount_start = bench->ccount;
+        // idle_overflow_start = bench->overflows;
+
+        microkit_notify(START_PMU);
+
+    } else if (msg_match(data_packet, STOP)) {        
+        printf("measurement finished \n");;
+        
+        uint64_t total, idle;
+
+        // total = bench->ts - start;
+        // total += ULONG_MAX * (bench->overflows - idle_overflow_start);
+        // idle = bench->ccount - idle_ccount_start;
+
+        char tbuf[16];
         my_itoa(total, tbuf);
 
-        char ibuf[21];
+        char ibuf[16];
         my_itoa(idle, ibuf);
 
-        /* Message format: ",total,idle\0" */
-        int len = strlen(tbuf) + strlen(ibuf) + 3;
+        char buffer[100];
+
+        int len = strlen(tbuf) + strlen(ibuf) + 2;
         char lbuf[16];
         my_itoa(len, lbuf);
 
-        char buffer[120];
         strcat(strcpy(buffer, "220 VALID DATA (Data to follow)\nContent-length: "), lbuf);
         strcat(buffer, "\n,");
         strcat(buffer, ibuf);
         strcat(buffer, ",");
         strcat(buffer, tbuf);
-        
-        error = tcp_write(pcb, buffer, strlen(buffer) + 1, TCP_WRITE_FLAG_COPY);
-        tcp_shutdown(pcb, 0, 1);
 
-        if (!strcmp(microkit_name, "client0")) microkit_notify(STOP_PMU);
-    } else if (msg_match(data_packet_str, QUIT)) {
+        // microkit_dbg_puts(buffer);
+        error = tcp_write(pcb, buffer, strlen(buffer), TCP_WRITE_FLAG_COPY);
+
+        tcp_shutdown(pcb, 0, 1);
+        
+        microkit_notify(STOP_PMU);
+    } else if (msg_match(data_packet, QUIT)) {
         /* Do nothing for now */
+    } else if (msg_match(data_packet, KBD)) {
+        if (curr_pcb) {
+            printf("\nsent '%s'\n", kbd_buf);
+            char* str = "RECEIVED: '";
+            error = tcp_write(curr_pcb, str, strlen(str), TCP_WRITE_FLAG_COPY);
+            error = tcp_write(curr_pcb, kbd_buf, strlen(kbd_buf), TCP_WRITE_FLAG_COPY);
+            str = "'\n";
+            error = tcp_write(curr_pcb, str, strlen(str), TCP_WRITE_FLAG_COPY);
+            for (int i = 0; i < 20; i++) {
+                kbd_buf[i] = '\0';
+            }
+            buf_index = 0;
+            if (error) {
+                microkit_dbg_puts("Failed to send OK message through utilization peer");
+            }
+        } else {
+            curr_pcb = pcb;
+            printf("Keyboard primed\n");
+            char* return_string = "Keyboard ready for input\n";
+            error = tcp_write(pcb, return_string, strlen(return_string), TCP_WRITE_FLAG_COPY);
+            if (error) {
+                microkit_dbg_puts("Failed to send OK message through utilization peer");
+            }
+        }
     } else {
-        printf("Received a message that we can't handle %s\n", data_packet_str);
+        microkit_dbg_puts("Received a message that we can't handle ");
+        microkit_dbg_puts(data_packet);
+        microkit_dbg_puts("\n");
+        // printf("input :%s:, match = :%s:\n", data_packet, KBD);
         error = tcp_write(pcb, ERROR, strlen(ERROR), TCP_WRITE_FLAG_COPY);
-        if (error) printf("Failed to send OK message through utilization peer\n");
+        if (error) {
+            microkit_dbg_puts("Failed to send OK message through utilization peer");
+        }
     }
 
     return ERR_OK;
@@ -194,36 +233,56 @@ static err_t utilization_recv_callback(void *arg, struct tcp_pcb *pcb, struct pb
 
 static err_t utilization_accept_callback(void *arg, struct tcp_pcb *newpcb, err_t err)
 {
-    printf("Utilization connection established!\n");
+    microkit_dbg_puts("Utilization connection established!\n");
+    curr_pcb = newpcb;
     err_t error = tcp_write(newpcb, WHOAMI, strlen(WHOAMI), TCP_WRITE_FLAG_COPY);
-    if (error) printf("Failed to send WHOAMI message through utilization peer\n");
+    if (error) {
+        microkit_dbg_puts("Failed to send WHOAMI message through utilization peer");
+    }
     tcp_sent(newpcb, utilization_sent_callback);
     tcp_recv(newpcb, utilization_recv_callback);
-
+    
     return ERR_OK;
 }
 
 int setup_utilization_socket(void)
 {
-    bench = (void *)cyclecounters_vaddr;
     utiliz_socket = tcp_new_ip_type(IPADDR_TYPE_V4);
     if (utiliz_socket == NULL) {
-        printf("Failed to open a socket for listening!\n");
+        microkit_dbg_puts("Failed to open a socket for listening!");
         return -1;
     }
 
     err_t error = tcp_bind(utiliz_socket, IP_ANY_TYPE, UTILIZATION_PORT);
     if (error) {
-        printf("Failed to bind the TCP socket");
+        microkit_dbg_puts("Failed to bind the TCP socket");
         return -1;
+    } else {
+        microkit_dbg_puts("Utilisation port bound to port 1236");
     }
 
     utiliz_socket = tcp_listen_with_backlog_and_err(utiliz_socket, 1, &error);
     if (error != ERR_OK) {
-        printf("Failed to listen on the utilization socket\n");
+        microkit_dbg_puts("Failed to listen on the utilization socket");
         return -1;
     }
     tcp_accept(utiliz_socket, utilization_accept_callback);
 
+    return 0;
+}
+
+int send_keypress(char c) {
+    if (curr_pcb) {
+        if (buf_index < BUFLEN) {
+            kbd_buf[buf_index] = c;
+            buf_index++;
+            /* kbd_buf[buf_index++] = '\0'; */
+        } else {
+            printf("\nbuffer full (max 7 chars)!\n");
+        }
+        // int error = tcp_write(curr_pcb, str, strlen(str), TCP_WRITE_FLAG_COPY);
+    } else {
+        printf("keyboard not ready, type KBD in terminal\n");
+    }
     return 0;
 }
