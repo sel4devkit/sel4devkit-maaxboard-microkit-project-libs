@@ -258,7 +258,7 @@ int setup_utilization_socket(void)
         microkit_dbg_puts("Failed to bind the TCP socket");
         return -1;
     } else {
-        microkit_dbg_puts("Utilisation port bound to port 1236");
+        microkit_dbg_puts("Utilisation port bound to port 1236\n");
     }
 
     utiliz_socket = tcp_listen_with_backlog_and_err(utiliz_socket, 1, &error);

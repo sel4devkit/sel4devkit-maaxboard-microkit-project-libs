@@ -33,6 +33,7 @@ uintptr_t rx_free;
 uintptr_t rx_used;
 uintptr_t tx_free;
 uintptr_t tx_used;
+uintptr_t ethernet_mem;
 
 bool eth_irq = false;
 
@@ -72,16 +73,14 @@ ring_handle_t tx_ring;
 
 static uint8_t mac[6];
 
-volatile struct enet_regs *eth = (void *)(uintptr_t)0x62000000;
+volatile struct enet_regs *eth = (void *)(uintptr_t)0x30be0000;
 
 static void get_mac_addr(volatile struct enet_regs *reg, uint8_t *mac)
 {
-    printf("here\n");
     uint32_t l, h;
     l = reg->palr;
     h = reg->paur;
 
-    printf("here\n");
     mac[0] = l >> 24;
     printf("mac[0]: %d\n", mac[0]);
     mac[1] = l >> 16 & 0xff;
@@ -450,7 +449,7 @@ eth_setup(void)
     eth->tipg = TIPG;
     /* Transmit FIFO Watermark register - store and forward */
     eth->tfwr = 0;
-
+    
     /* enable store and forward. This must be done for hardware csums*/
     eth->rsfl = 0;
     /* Do not forward frames with errors + check the csum */
@@ -501,7 +500,7 @@ void init_post()
 
 void init(void)
 {
-    // printf("%s: elf PD init function running\n", microkit_name);
+    printf("%s: elf PD init function running\n", microkit_name);
 
     eth_setup();
 

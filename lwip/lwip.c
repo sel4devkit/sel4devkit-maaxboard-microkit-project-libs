@@ -304,10 +304,7 @@ static void get_mac(void)
     printf("lwip get mac\n");
     // printf((char) state.mac[0]);
 
-    printf("before microkit_ppcall\n");
-    printf("before microkit_ppcall\n");
     microkit_ppcall(4, seL4_MessageInfo_new(0,0,0,0));
-    printf("here\n");
     uint32_t palr = microkit_mr_get(0);
     uint32_t paur = microkit_mr_get(1);
     state.mac[0] = palr >> 24;
@@ -316,7 +313,6 @@ static void get_mac(void)
     state.mac[3] = palr & 0xff;
     state.mac[4] = paur >> 24;
     state.mac[5] = paur >> 16 & 0xff;
-    printf("here 1\n");
 }
 
 void init_post(void)
