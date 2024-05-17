@@ -34,6 +34,7 @@ uintptr_t rx_used;
 uintptr_t tx_free;
 uintptr_t tx_used;
 uintptr_t ethernet_mem;
+uintptr_t uart_base;
 
 bool eth_irq = false;
 
@@ -496,6 +497,7 @@ void init_post()
     msg = seL4_MessageInfo_new(0, 0, 0, 1);
     seL4_SetMR(0, 0);
     signal = (MONITOR_EP); */
+    printf("--- end of init post %s ---\n", microkit_name);
 }
 
 void init(void)
@@ -505,12 +507,13 @@ void init(void)
     eth_setup();
 
     /* Now wait for notification from lwip that buffers are initialised */
+    printf("eth fini, wait for buffer init\n");
 }
 
 seL4_MessageInfo_t
 protected(microkit_channel ch, microkit_msginfo msginfo)
 {
-    printf("entering ppcall from lwip to eth\n");
+    printf("entering ppcall from lwip to eth %d\n", ch);
     switch (ch) {
         case INIT:
             // return the MAC address. 
@@ -530,16 +533,17 @@ protected(microkit_channel ch, microkit_msginfo msginfo)
 
 void notified(microkit_channel ch)
 {
-    printf("notified\n");
+    printf("ETH NOTIFIED %d\n",ch);
     switch(ch) {
         case IRQ_CH:
             // printf("ethernet interrupt\n");
             handle_eth(eth);
             have_signal = true;
             signal_msg = seL4_MessageInfo_new(IRQAckIRQ, 0, 0, 0);
-            // signal = (BASE_IRQ_CAP + IRQ_CH);
+            signal_cap = (BASE_IRQ_CAP + IRQ_CH);
             return;
         case INIT:
+            printf("ETH DOING INIT_POST\n");
             init_post();
             break;
         case TX_CH:
@@ -551,4 +555,5 @@ void notified(microkit_channel ch)
             printf("eth driver: received notification on unexpected channel : %d\n", ch);
             break;
     }
+    printf("finish eth notified\n");
 }

@@ -53,13 +53,13 @@ target_include_directories(lwip PUBLIC
     "sddf/include/ethernet_config")
 
 # List of image files
-set(IMAGES "${MICROKIT_APP}.elf" "eth.elf" "lwip.elf" "timer.elf")
+set(IMAGES "${MICROKIT_APP}.elf" "eth.elf" "lwip.elf")
 list(TRANSFORM IMAGES PREPEND "${BUILD_DIR}/")
 
 add_executable(${MICROKIT_APP}.elf example/${PLATFORM}/${MICROKIT_APP}/${MICROKIT_APP}.c)
 add_executable(eth.elf ethernet/ethernet.c ethernet/shared_ringbuffer.c)
 add_executable(lwip.elf lwip/lwip.c lwip/utilization_socket.c lwip/udp_echo_socket.c timer/timer.c ethernet/shared_ringbuffer.c)
-add_executable(timer.elf drivers/clock/imx/timer.c)
+# add_executable(timer.elf drivers/clock/imx/timer.c)
 
 
 # Linker - app
@@ -103,18 +103,18 @@ target_include_directories(lwip.elf PRIVATE
 target_link_libraries(lwip.elf PUBLIC lwip)
 target_link_libraries(lwip.elf PRIVATE ${LIBS})
 
-# Linker - timer
-target_link_options(timer.elf PRIVATE ${LDFLAGS})
-target_compile_options(timer.elf PRIVATE ${CFLAGS})
-target_include_directories(timer.elf PRIVATE 
-    "${BOARD_DIR}/include"  
-    "libubootdrivers/include/public_api/"
-    "${PICOLIBC_DIR}/include/"
-    "sddf/include"
-    "sddf/include/ethernet_config"
-    "ethernet"
-)
-target_link_libraries(timer.elf PRIVATE ${LIBS})
+# # Linker - timer
+# target_link_options(timer.elf PRIVATE ${LDFLAGS})
+# target_compile_options(timer.elf PRIVATE ${CFLAGS})
+# target_include_directories(timer.elf PRIVATE 
+#     "${BOARD_DIR}/include"  
+#     "libubootdrivers/include/public_api/"
+#     "${PICOLIBC_DIR}/include/"
+#     "sddf/include"
+#     "sddf/include/ethernet_config"
+#     "ethernet"
+# )
+# target_link_libraries(timer.elf PRIVATE ${LIBS})
 
 # # First define a custom command that creates the image
 # add_custom_command(

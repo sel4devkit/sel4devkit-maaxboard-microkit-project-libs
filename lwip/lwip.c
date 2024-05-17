@@ -42,6 +42,7 @@ uintptr_t rx_used;
 uintptr_t tx_free;
 uintptr_t tx_used;
 uintptr_t shared_dma_vaddr;
+uintptr_t uart_base;
 
 typedef enum {
     ORIGIN_RX_QUEUE,
@@ -222,7 +223,7 @@ static err_t lwip_eth_send(struct netif *netif, struct pbuf *p)
     /* Notify the server for next time we recv() */
     have_signal = true;
     signal_msg = seL4_MessageInfo_new(0, 0, 0, 0);
-    // signal = (BASE_OUTPUT_NOTIFICATION_CAP + TX_CH);
+    signal_cap = (BASE_OUTPUT_NOTIFICATION_CAP + TX_CH);
     /* NOTE: If driver is passive, we want to Call instead. */
 
     return ret;
@@ -290,6 +291,8 @@ static err_t ethernet_init(struct netif *netif)
 
 static void netif_status_callback(struct netif *netif)
 {
+    printf("NETIF CALLBACK\n");
+    printf("netif: %p, supplied address? %d\n", netif, dhcp_supplied_address(netif));
     if (dhcp_supplied_address(netif)) {
         printf("DHCP request finished, IP address for netif ");
         printf(netif->name);
@@ -397,7 +400,7 @@ void init(void)
     netif_set_default(&(state.netif));
 
 
-    printf("notify\n");
+    microkit_dbg_puts("microkit_notify(INIT); lwip\n");
     microkit_notify(INIT);
 }
 
@@ -406,15 +409,16 @@ void notified(microkit_channel ch)
     switch(ch) {
         case RX_CH:
             process_rx_queue();
-            return;
+            break;
         case INIT:
             init_post();
-            return;
+            break;
+        case 11:
         case IRQ:
             /* Timer */
             irq(ch);
             microkit_irq_ack(ch);
-            return;
+            break;
         default:
             printf("lwip: received notification on unexpected channel\n");
             break;
