@@ -53,12 +53,13 @@ target_include_directories(lwip PUBLIC
     "sddf/include/ethernet_config")
 
 # List of image files
-set(IMAGES "${MICROKIT_APP}.elf" "eth.elf" "lwip.elf")
+set(IMAGES "${MICROKIT_APP}.elf" "eth.elf" "lwip.elf" "keyreader.elf")
 list(TRANSFORM IMAGES PREPEND "${BUILD_DIR}/")
 
 add_executable(${MICROKIT_APP}.elf example/${PLATFORM}/${MICROKIT_APP}/${MICROKIT_APP}.c)
 add_executable(eth.elf ethernet/ethernet.c ethernet/shared_ringbuffer.c)
 add_executable(lwip.elf lwip/lwip.c lwip/utilization_socket.c lwip/udp_echo_socket.c timer/timer.c ethernet/shared_ringbuffer.c)
+add_executable(keyreader.elf keyreader/keyreader.c)
 # add_executable(timer.elf drivers/clock/imx/timer.c)
 
 
@@ -102,6 +103,17 @@ target_include_directories(lwip.elf PRIVATE
 )
 target_link_libraries(lwip.elf PUBLIC lwip)
 target_link_libraries(lwip.elf PRIVATE ${LIBS})
+
+# Linker - keyreader
+target_link_options(keyreader.elf PRIVATE ${LDFLAGS})
+target_compile_options(keyreader.elf PRIVATE ${CFLAGS})
+target_include_directories(keyreader.elf PRIVATE 
+    "${BOARD_DIR}/include"  
+    "libubootdrivers/include/public_api/"
+    "${PICOLIBC_DIR}/include/"
+)
+target_link_libraries(keyreader.elf PUBLIC ubootdrivers utils microkitdma)
+target_link_libraries(keyreader.elf PRIVATE ${LIBS})
 
 # # Linker - timer
 # target_link_options(timer.elf PRIVATE ${LDFLAGS})
