@@ -61,7 +61,7 @@ add_executable(eth.elf ethernet/ethernet.c ethernet/shared_ringbuffer.c)
 add_executable(lwip.elf lwip/lwip.c lwip/utilization_socket.c lwip/udp_echo_socket.c timer/timer.c ethernet/shared_ringbuffer.c)
 add_executable(keyreader.elf keyreader/keyreader.c)
 add_executable(transmitter.elf transmitter/transmitter.c)
-# add_executable(timer.elf drivers/clock/imx/timer.c)
+# add_executable(crypto.elf crypto/crypto.c)
 
 
 # # Linker - app
@@ -112,6 +112,7 @@ target_include_directories(keyreader.elf PRIVATE
     "${BOARD_DIR}/include"  
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/"
+    "include"
 )
 target_link_libraries(keyreader.elf PUBLIC ubootdrivers utils microkitdma)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
@@ -125,24 +126,22 @@ target_include_directories(transmitter.elf PRIVATE
     "${BOARD_DIR}/include"  
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/"
+    "include"
 )
 target_link_libraries(transmitter.elf PUBLIC ubootdrivers)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(transmitter.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
 target_link_libraries(transmitter.elf PRIVATE ${LIBS})
 
-# # Linker - timer
-# target_link_options(timer.elf PRIVATE ${LDFLAGS})
-# target_compile_options(timer.elf PRIVATE ${CFLAGS})
-# target_include_directories(timer.elf PRIVATE 
+# Linker - crypto
+# target_link_options(crypto.elf PRIVATE ${LDFLAGS})
+# target_compile_options(crypto.elf PRIVATE ${CFLAGS})
+# target_include_directories(crypto.elf PRIVATE 
 #     "${BOARD_DIR}/include"  
-#     "libubootdrivers/include/public_api/"
 #     "${PICOLIBC_DIR}/include/"
-#     "sddf/include"
-#     "sddf/include/ethernet_config"
-#     "ethernet"
 # )
-# target_link_libraries(timer.elf PRIVATE ${LIBS})
+# target_link_libraries(transmitter.elf PRIVATE ${LIBS})
+
 
 # # First define a custom command that creates the image
 # add_custom_command(
