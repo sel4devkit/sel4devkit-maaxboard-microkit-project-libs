@@ -53,7 +53,7 @@ target_include_directories(lwip PUBLIC
     "sddf/include/ethernet_config")
 
 # List of image files
-set(IMAGES "eth.elf" "lwip.elf" "keyreader.elf" "transmitter.elf")
+set(IMAGES "eth.elf" "lwip.elf" "keyreader.elf" "transmitter.elf" "crypto.elf")
 list(TRANSFORM IMAGES PREPEND "${BUILD_DIR}/")
 
 # add_executable(${MICROKIT_APP}.elf example/${PLATFORM}/${MICROKIT_APP}/${MICROKIT_APP}.c)
@@ -61,7 +61,7 @@ add_executable(eth.elf ethernet/ethernet.c ethernet/shared_ringbuffer.c)
 add_executable(lwip.elf lwip/lwip.c lwip/utilization_socket.c lwip/udp_echo_socket.c timer/timer.c ethernet/shared_ringbuffer.c)
 add_executable(keyreader.elf keyreader/keyreader.c)
 add_executable(transmitter.elf transmitter/transmitter.c)
-# add_executable(crypto.elf crypto/crypto.c)
+add_executable(crypto.elf crypto/crypto.c)
 
 
 # # Linker - app
@@ -134,13 +134,17 @@ target_include_directories(transmitter.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
 target_link_libraries(transmitter.elf PRIVATE ${LIBS})
 
 # Linker - crypto
-# target_link_options(crypto.elf PRIVATE ${LDFLAGS})
-# target_compile_options(crypto.elf PRIVATE ${CFLAGS})
-# target_include_directories(crypto.elf PRIVATE 
-#     "${BOARD_DIR}/include"  
-#     "${PICOLIBC_DIR}/include/"
-# )
-# target_link_libraries(transmitter.elf PRIVATE ${LIBS})
+target_link_options(crypto.elf PRIVATE ${LDFLAGS})
+target_compile_options(crypto.elf PRIVATE ${CFLAGS})
+target_include_directories(crypto.elf PRIVATE 
+    "${BOARD_DIR}/include"  
+    "${PICOLIBC_DIR}/include/"
+    "include"
+)
+target_link_libraries(crypto.elf PUBLIC ubootdrivers utils microkitdma)
+get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
+target_include_directories(crypto.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
+target_link_libraries(crypto.elf PRIVATE ${LIBS})
 
 
 # # First define a custom command that creates the image

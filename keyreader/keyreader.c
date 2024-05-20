@@ -45,8 +45,6 @@ void handle_keypress(void) {
 void
 init(void)
 {
-
-    printf("data_packet address %x\n", &data_packet);
     const char *const_dev_paths[] = DEV_PATHS;
 
     // Initalise DMA manager
