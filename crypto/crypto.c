@@ -45,7 +45,6 @@ char* mmc_pending_tx_buf = (void *)(uintptr_t)0x5011000;
 // NEED TO CHANGE TO PROPER LENGTH
 uint mmc_pending_length = 7;
 
-
 /* Encryption routine. For the purposes of the demo we use "rot 13" */
 char rot_13(char src)
 {
@@ -68,6 +67,16 @@ char rot_13(char src)
     return result;
 }
 
+void handle_character(char c){
+    char encrypted_char = rot_13(c);
+
+    printf("Encrypted char %c\n", encrypted_char);
+
+}
+
+
+
+
 void init()
 {
     for (size_t i = 0; i < mmc_pending_length; i++) {
@@ -79,4 +88,21 @@ void init()
 void
 notified(microkit_channel ch)
 {
+}
+
+seL4_MessageInfo_t
+protected(microkit_channel ch, microkit_msginfo msginfo)
+{
+    printf("entering ppcall from keyreader to crypto %d\n", ch);
+    char c;
+    switch (ch) {
+        case 5:
+            // return addr of root_intr_methods
+            c = (char) microkit_msginfo_get_label(msginfo);
+            handle_character(c);
+            break;
+        default:
+            printf("crypto received protected unexpected channel\n");
+    }
+    return seL4_MessageInfo_new(0,0,0,0);
 }
