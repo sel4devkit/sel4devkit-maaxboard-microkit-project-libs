@@ -231,8 +231,9 @@ static err_t lwip_eth_send(struct netif *netif, struct pbuf *p)
 
 void process_rx_queue(void) 
 {
-    // printf("process rx queue calling ring_empty\n");
+    printf("process rx queue calling ring_empty\n");
     while(!ring_empty(state.rx_ring.used_ring)) {
+        printf("In while loop of process_rx_queue\n");
         uintptr_t addr;
         unsigned int len;
         ethernet_buffer_t *buffer;
@@ -406,6 +407,7 @@ void init(void)
 
 void notified(microkit_channel ch)
 {
+    printf("LWIP NOTIFIED %d\n",ch);
     switch(ch) {
         case RX_CH:
             process_rx_queue();
