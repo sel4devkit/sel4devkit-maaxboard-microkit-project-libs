@@ -43,7 +43,7 @@ uintptr_t data_packet;
 uintptr_t data_packet;
 char* mmc_pending_tx_buf = (void *)(uintptr_t)0x5011000;
 // NEED TO CHANGE TO PROPER LENGTH
-uint mmc_pending_length = 7;
+uint mmc_pending_length = 0;
 
 /* Encryption routine. For the purposes of the demo we use "rot 13" */
 char rot_13(char src)
@@ -71,18 +71,19 @@ void handle_character(char c){
     char encrypted_char = rot_13(c);
 
     printf("Encrypted char %c\n", encrypted_char);
+    
+    microkit_ppcall(6, seL4_MessageInfo_new((uint64_t) encrypted_char,1,0,0));
+
+    mmc_pending_tx_buf[mmc_pending_length] = encrypted_char;
+
+    mmc_pending_length++;
 
 }
 
 
 
-
 void init()
-{
-    for (size_t i = 0; i < mmc_pending_length; i++) {
-        mmc_pending_tx_buf[i] = rot_13(mmc_pending_tx_buf[i]);
-    }
-    
+{   
 }
 
 void

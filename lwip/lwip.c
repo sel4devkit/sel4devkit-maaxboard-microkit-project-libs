@@ -429,9 +429,10 @@ void notified(microkit_channel ch)
 
 microkit_msginfo
 protected(microkit_channel ch, microkit_msginfo msginfo) {
+    printf("ppcall from crypto to lwip\n");
     char c;
     switch (ch) {
-        case 40:
+        case 6:
             // return addr of root_intr_methods
             c = (char) microkit_msginfo_get_label(msginfo);
             send_keypress(c);
