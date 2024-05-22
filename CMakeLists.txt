@@ -8,7 +8,7 @@ project(${MICROKIT_APP} LANGUAGES C)
 
 set(LD ${TOOLCHAIN}-ld)
 set(CMAKE_ASM_COMPILER ${TOOLCHAIN}-as)
-set(MICROKIT_DIR /packages/microkit/auts_microkit_latest_plus_big_stack)
+set(MICROKIT_DIR /packages/microkit/auts_microkit_stable_plus_big_stack)
 
 # Microkit specific information
 set(MICROKIT_SDK ${MICROKIT_DIR}/release/microkit-sdk-1.2.6)
@@ -34,6 +34,15 @@ set(IMAGE_FILE ${EXAMPLE_BUILD_DIR}/sel4_image.img)
 set(REPORT_FILE ${EXAMPLE_BUILD_DIR}/report.txt)
 
 set(libUbootPlatform ${PLATFORM})
+
+# Check if MY_VARIABLE is equal to "uboot-driver-example"
+if(${MICROKIT_APP} STREQUAL "uboot-driver-example")
+    add_definitions(-DUBOOT_DRIVER_EXAMPLE)
+endif()
+
+if(${MICROKIT_APP} STREQUAL "security_demo")
+    add_definitions(-DSECURITY_DEMO)
+endif()
 
 # Add libraries 
 add_subdirectory(libubootdrivers)

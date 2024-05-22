@@ -23,6 +23,7 @@ INCBIN(device_tree, DTB_PATH);
 
 const char* _end = incbin_device_tree_end;
 
+
 #define REG_TIMER_PATH      "/soc@0/bus@30400000/timer@306a0000"
 #define REG_CCM_PATH        "/soc@0/bus@30000000/clock-controller@30380000"
 #define REG_IOMUXC_PATH     "/soc@0/bus@30000000/iomuxc@30330000"
@@ -76,6 +77,7 @@ const char* _end = incbin_device_tree_end;
 #define DEV_CLK_6_PATH      "/clock-ext3"
 #define DEV_CLK_7_PATH      "/clock-ext4"
 
+#ifdef UBOOT_DRIVER_EXAMPLE
 #define DEV_PATH_COUNT 27
 
 #define DEV_PATHS {                                                             \
@@ -107,6 +109,41 @@ const char* _end = incbin_device_tree_end;
     DEV_CLK_6_PATH,                                                             \
     DEV_CLK_7_PATH                                                              \
     };
+#endif
+
+#ifdef SECURITY_DEMO
+#define DEV_PATH_COUNT 26
+
+#define DEV_PATHS {                                                             \
+    DEV_USB_2_PATH,                                                             \
+    DEV_USB_PHY_2_PATH,                                                         \
+    DEV_MMC_PATH,                                                               \
+    DEV_TIMER_PATH,                                                             \
+    DEV_CCM_PATH,                                                               \
+    DEV_OCOTP_PATH,                                                             \
+    DEV_SYSCON_PATH,                                                            \
+    DEV_IOMUXC_PATH,                                                            \
+    DEV_GPIO_1_PATH,                                                            \
+    DEV_GPIO_2_PATH,                                                            \
+    DEV_GPIO_3_PATH,                                                            \
+    DEV_GPIO_4_PATH,                                                            \
+    DEV_GPIO_5_PATH,                                                            \
+    DEV_I2C_0_PATH,                                                             \
+    DEV_I2C_1_PATH,                                                             \
+    DEV_I2C_2_PATH,                                                             \
+    DEV_I2C_3_PATH,                                                             \
+    DEV_SPI_0_PATH,                                                             \
+    DEV_LEDS_PATH,                                                              \
+    DEV_CLK_1_PATH,                                                             \
+    DEV_CLK_2_PATH,                                                             \
+    DEV_CLK_3_PATH,                                                             \
+    DEV_CLK_4_PATH,                                                             \
+    DEV_CLK_5_PATH,                                                             \
+    DEV_CLK_6_PATH,                                                             \
+    DEV_CLK_7_PATH                                                              \
+    };
+#endif
+
 
 // picolibc setup
 seL4_IPCBuffer* __sel4_ipc_buffer_obj;
