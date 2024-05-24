@@ -71,8 +71,6 @@ void handle_character(char c){
     char encrypted_char = rot_13(c);
 
     printf("Encrypted char %c\n", encrypted_char);
-    
-    microkit_ppcall(6, seL4_MessageInfo_new((uint64_t) encrypted_char,1,0,0));
 
     mmc_pending_tx_buf[mmc_pending_length] = encrypted_char;
 

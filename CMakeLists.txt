@@ -48,26 +48,26 @@ endif()
 add_subdirectory(libubootdrivers)
 add_subdirectory(libutils)
 add_subdirectory(libmicrokitdma)
-add_subdirectory(liblwip)
+# add_subdirectory(liblwip)
 target_include_directories(microkitdma PUBLIC 
     "${BOARD_DIR}/include" 
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/")
-target_include_directories(lwip PUBLIC
-    "${BOARD_DIR}/include" 
-    "libubootdrivers/include/public_api/"
-    "${PICOLIBC_DIR}/include/"
-    "sddf/include"
-    "sddf/include/lwip"
-    "sddf/include/ethernet_config")
+# target_include_directories(lwip PUBLIC
+#     "${BOARD_DIR}/include" 
+#     "libubootdrivers/include/public_api/"
+#     "${PICOLIBC_DIR}/include/"
+#     "sddf/include"
+#     "sddf/include/lwip"
+#     "sddf/include/ethernet_config")
 
 # List of image files
-set(IMAGES "eth.elf" "lwip.elf" "keyreader.elf" "transmitter.elf" "crypto.elf")
+set(IMAGES "keyreader.elf" "transmitter.elf" "crypto.elf")
 list(TRANSFORM IMAGES PREPEND "${BUILD_DIR}/")
 
 # add_executable(${MICROKIT_APP}.elf example/${PLATFORM}/${MICROKIT_APP}/${MICROKIT_APP}.c)
-add_executable(eth.elf ethernet/ethernet.c ethernet/shared_ringbuffer.c)
-add_executable(lwip.elf lwip/lwip.c lwip/utilization_socket.c lwip/udp_echo_socket.c timer/timer.c ethernet/shared_ringbuffer.c)
+# add_executable(eth.elf ethernet/ethernet.c ethernet/shared_ringbuffer.c)
+# add_executable(lwip.elf lwip/lwip.c lwip/utilization_socket.c lwip/udp_echo_socket.c timer/timer.c ethernet/shared_ringbuffer.c)
 add_executable(keyreader.elf keyreader/keyreader.c)
 add_executable(transmitter.elf transmitter/transmitter.c)
 add_executable(crypto.elf crypto/crypto.c)
@@ -86,33 +86,33 @@ add_executable(crypto.elf crypto/crypto.c)
 # target_include_directories(${MICROKIT_APP}.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
 # target_link_libraries(${MICROKIT_APP}.elf PRIVATE ${LIBS})
 
-# Linker - ethernet driver
-target_link_options(eth.elf PRIVATE ${LDFLAGS})
-target_compile_options(eth.elf PRIVATE ${CFLAGS})
-target_include_directories(eth.elf PRIVATE 
-    "${BOARD_DIR}/include"  
-    "libubootdrivers/include/public_api/"
-    "${PICOLIBC_DIR}/include/"
-    "sddf/include"
-    "sddf/include/ethernet_config"
-    "ethernet"
-    "include"
-)
-target_link_libraries(eth.elf PRIVATE ${LIBS})
+# # Linker - ethernet driver
+# target_link_options(eth.elf PRIVATE ${LDFLAGS})
+# target_compile_options(eth.elf PRIVATE ${CFLAGS})
+# target_include_directories(eth.elf PRIVATE 
+#     "${BOARD_DIR}/include"  
+#     "libubootdrivers/include/public_api/"
+#     "${PICOLIBC_DIR}/include/"
+#     "sddf/include"
+#     "sddf/include/ethernet_config"
+#     "ethernet"
+#     "include"
+# )
+# target_link_libraries(eth.elf PRIVATE ${LIBS})
 
-# Linker - lwip
-target_link_options(lwip.elf PRIVATE ${LDFLAGS})
-target_compile_options(lwip.elf PRIVATE ${CFLAGS})
-target_include_directories(lwip.elf PRIVATE 
-    "${BOARD_DIR}/include"  
-    "libubootdrivers/include/public_api/"
-    "${PICOLIBC_DIR}/include/"
-    "sddf/include"
-    "sddf/include/ethernet_config"
-    "include"
-)
-target_link_libraries(lwip.elf PUBLIC lwip)
-target_link_libraries(lwip.elf PRIVATE ${LIBS})
+# # Linker - lwip
+# target_link_options(lwip.elf PRIVATE ${LDFLAGS})
+# target_compile_options(lwip.elf PRIVATE ${CFLAGS})
+# target_include_directories(lwip.elf PRIVATE 
+#     "${BOARD_DIR}/include"  
+#     "libubootdrivers/include/public_api/"
+#     "${PICOLIBC_DIR}/include/"
+#     "sddf/include"
+#     "sddf/include/ethernet_config"
+#     "include"
+# )
+# target_link_libraries(lwip.elf PUBLIC lwip)
+# target_link_libraries(lwip.elf PRIVATE ${LIBS})
 
 # Linker - keyreader
 target_link_options(keyreader.elf PRIVATE ${LDFLAGS})
