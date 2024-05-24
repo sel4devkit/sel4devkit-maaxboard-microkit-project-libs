@@ -35,15 +35,13 @@
 #define LC_a 97
 #define LC_z 122
 
-uintptr_t data_packet;
+uintptr_t data_buffer;
 
 
 /* A buffer of encrypted characters to log to the SD/MMC card */
 #define MMC_TX_BUF_LEN 4096
 uintptr_t data_packet;
-char* mmc_pending_tx_buf = (void *)(uintptr_t)0x5011000;
-// NEED TO CHANGE TO PROPER LENGTH
-uint mmc_pending_length = 0;
+int mmc_pending_length = 0;
 
 /* Encryption routine. For the purposes of the demo we use "rot 13" */
 char rot_13(char src)
@@ -69,8 +67,13 @@ char rot_13(char src)
 
 void write_buffer(uintptr_t memory_region, char encrypted_char){
 
-    char* ptr = memory_region;
-    ptr[mmc_pending_length] = encrypted_char;
+    char* data_buffer_ptr = (char*)data_buffer;
+    if (mmc_pending_length < MMC_TX_BUF_LEN){
+        data_buffer_ptr[mmc_pending_length] = encrypted_char;
+        printf("Buffer pointer %c\n", data_buffer_ptr[mmc_pending_length]);
+    } else{
+        printf("Buffer full\n");
+    }
 
     mmc_pending_length++;
 
@@ -82,7 +85,6 @@ void handle_character(char c){
     printf("Encrypted char %c\n", encrypted_char);
 
     write_buffer(data_packet, encrypted_char);
-
 }
 
 
@@ -94,6 +96,10 @@ void init()
 void
 notified(microkit_channel ch)
 {
+    switch (ch){
+        case 5:
+        microkit_ppcall(6, seL4_MessageInfo_new((uint64_t) mmc_pending_length,1,0,0));
+    }
 }
 
 seL4_MessageInfo_t

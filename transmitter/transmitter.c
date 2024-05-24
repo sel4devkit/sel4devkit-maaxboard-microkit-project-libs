@@ -21,12 +21,11 @@
 #define LOG_FILENAME  "log.txt"
 
 /* A buffer of encrypted characters to log to the SD/MMC card */
-uintptr_t data_packet;
-char* mmc_pending_tx_buf = (void *)(uintptr_t)0x5011000;
+uintptr_t data_buffer;
 uint mmc_pending_length = 0;
 
 
-void write_pending_mmc_log(void)
+void write_pending_mmc_log(char* data_buffer_pointer)
 {
 
     /* Track the total number of bytes written to the log file*/
@@ -37,33 +36,48 @@ void write_pending_mmc_log(void)
 
     /* Write all keypresses stored in the 'mmc_pending_tx_buf' buffer to the log file */
     char uboot_cmd[64];
+    printf("Data buffer pointer %x\n", data_buffer_pointer);
     sprintf(uboot_cmd, "fatwrite %s 0x%x %s %x %x",
         LOG_FILE_DEVICE,        // The U-Boot partition designation
-        &mmc_pending_tx_buf,    // Address of the buffer to write
+        data_buffer_pointer,    // Address of the buffer to write
         LOG_FILENAME,           // Filename to log to
         mmc_pending_length,     // The number of bytes to write
         0);   // The offset in the file to start writing from
     int ret = run_uboot_command(uboot_cmd);
+
+    // Test string to read the file into
+    #define MAX_BYTES_TO_READ 32
+    char read_string[MAX_BYTES_TO_READ];
+
+    // Read then output contents of the file
+    sprintf(uboot_cmd, "fatload %s 0x%x %s %x %x",
+        LOG_FILE_DEVICE,   // The U-Boot partition designation
+        &read_string,                // Address to read the data into
+        LOG_FILENAME,    // Filename to read from
+        MAX_BYTES_TO_READ,           // Max number of bytes to read (0 = to end of file)
+        0);                          // The offset in the file to start read from
+    run_uboot_command(uboot_cmd);
+    printf("String read from file %s: %s\n", LOG_FILENAME, read_string);
 
     /* Clear the buffer if writing to the file was successful */
     if (ret >= 0) {
         total_bytes_written += mmc_pending_length;
 
         /* All pending characters have now been sent. Clear the buffer */
-        memset(mmc_pending_tx_buf, 0, mmc_pending_length);
+        memset(data_buffer, 0, mmc_pending_length);
         mmc_pending_length = 0;
     }
 
-    printf("Enf of write_pending_mmc_log\n");
+    printf("End of write_pending_mmc_log\n");
 }
 
 void
-init(void)
+init_post(void)
 {
     printf("Transmitter\n");
 
-    printf("buffer index 1 %c\n", mmc_pending_tx_buf[1]);
-
+    char* data_buffer_ptr = (char*)data_buffer;
+    
     const char *const_dev_paths[] = DEV_PATHS;
 
     // Initalise DMA manager
@@ -80,12 +94,33 @@ init(void)
     /* List the device tree paths for the devices */
     const_dev_paths, DEV_PATH_COUNT);
 
-    write_pending_mmc_log();
+    write_pending_mmc_log(data_buffer_ptr);
 
     return 0;
 }
 
 void
+init(void)
+{
+}
+
+void
 notified(microkit_channel ch)
 {
+}
+
+seL4_MessageInfo_t
+protected(microkit_channel ch, microkit_msginfo msginfo)
+{
+    printf("entering ppcall from crypto to transmitter %d\n", ch);
+    switch (ch) {
+        case 6:
+            // return addr of root_intr_methods
+            mmc_pending_length = (int) microkit_msginfo_get_label(msginfo);
+            init_post();
+            break;
+        default:
+            printf("crypto received protected unexpected channel\n");
+    }
+    return seL4_MessageInfo_new(0,0,0,0);
 }

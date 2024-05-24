@@ -19,12 +19,7 @@
 #include <plat_support.h>
 #include <shared_ringbuffer.h>
 
-uintptr_t data_packet;
-
-#define MMC_TX_BUF_LEN 4096
-uintptr_t data_packet;
-char* mmc_pending_tx_buf = (void *)(uintptr_t)0x5011000;
-uint mmc_pending_length = 0;
+uintptr_t data_buffer;
 
 
 void handle_keypress(void) {
@@ -46,6 +41,7 @@ void handle_keypress(void) {
         }
         udelay(10000);
     }
+    microkit_notify(5);
 }
 
 void
