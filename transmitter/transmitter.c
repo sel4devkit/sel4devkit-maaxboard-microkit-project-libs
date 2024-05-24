@@ -64,8 +64,6 @@ void write_mmc_log(char* data_buffer_pointer)
 void
 init_post(void)
 {
-    printf("Transmitter\n");
-
     char* data_buffer_ptr = (char*)data_buffer;
     
     const char *const_dev_paths[] = DEV_PATHS;
