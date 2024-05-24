@@ -37,10 +37,12 @@ set(libUbootPlatform ${PLATFORM})
 
 # Set Macros depending on the application 
 if(${MICROKIT_APP} STREQUAL "uboot-driver-example")
+    set(IMAGES "${MICROKIT_APP}.elf")
     add_definitions(-DUBOOT_DRIVER_EXAMPLE)
 endif()
 
 if(${MICROKIT_APP} STREQUAL "security_demo")
+    set(IMAGES "keyreader.elf" "transmitter.elf" "crypto.elf")
     add_definitions(-DSECURITY_DEMO)
 endif()
 
@@ -48,72 +50,40 @@ endif()
 add_subdirectory(libubootdrivers)
 add_subdirectory(libutils)
 add_subdirectory(libmicrokitdma)
-# add_subdirectory(liblwip)
 target_include_directories(microkitdma PUBLIC 
     "${BOARD_DIR}/include" 
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/")
-# target_include_directories(lwip PUBLIC
-#     "${BOARD_DIR}/include" 
-#     "libubootdrivers/include/public_api/"
-#     "${PICOLIBC_DIR}/include/"
-#     "sddf/include"
-#     "sddf/include/lwip"
-#     "sddf/include/ethernet_config")
 
-# List of image files
-set(IMAGES "keyreader.elf" "transmitter.elf" "crypto.elf")
+# Transform image files
 list(TRANSFORM IMAGES PREPEND "${BUILD_DIR}/")
 
-# add_executable(${MICROKIT_APP}.elf example/${PLATFORM}/${MICROKIT_APP}/${MICROKIT_APP}.c)
-# add_executable(eth.elf ethernet/ethernet.c ethernet/shared_ringbuffer.c)
-# add_executable(lwip.elf lwip/lwip.c lwip/utilization_socket.c lwip/udp_echo_socket.c timer/timer.c ethernet/shared_ringbuffer.c)
+if(${MICROKIT_APP} STREQUAL "uboot-driver-example")
+add_executable(${MICROKIT_APP}.elf example/${PLATFORM}/${MICROKIT_APP}/${MICROKIT_APP}.c)
+endif()
+
+if(${MICROKIT_APP} STREQUAL "security_demo")
 add_executable(keyreader.elf keyreader/keyreader.c)
 add_executable(transmitter.elf transmitter/transmitter.c)
 add_executable(crypto.elf crypto/crypto.c)
+endif()
 
+if(${MICROKIT_APP} STREQUAL "uboot-driver-example")
+# Linker - app
+target_link_options(${MICROKIT_APP}.elf PRIVATE ${LDFLAGS})
+target_compile_options(${MICROKIT_APP}.elf PRIVATE ${CFLAGS})
+target_include_directories(${MICROKIT_APP}.elf PRIVATE 
+    "${BOARD_DIR}/include" 
+    "libubootdrivers/include/public_api/"
+    "${PICOLIBC_DIR}/include/"
+)
+target_link_libraries(${MICROKIT_APP}.elf PUBLIC ubootdrivers utils microkitdma)
+get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
+target_include_directories(${MICROKIT_APP}.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
+target_link_libraries(${MICROKIT_APP}.elf PRIVATE ${LIBS})
+endif()
 
-# # Linker - app
-# target_link_options(${MICROKIT_APP}.elf PRIVATE ${LDFLAGS})
-# target_compile_options(${MICROKIT_APP}.elf PRIVATE ${CFLAGS})
-# target_include_directories(${MICROKIT_APP}.elf PRIVATE 
-#     "${BOARD_DIR}/include" 
-#     "libubootdrivers/include/public_api/"
-#     "${PICOLIBC_DIR}/include/"
-# )
-# target_link_libraries(${MICROKIT_APP}.elf PUBLIC ubootdrivers utils microkitdma lwip)
-# get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
-# target_include_directories(${MICROKIT_APP}.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
-# target_link_libraries(${MICROKIT_APP}.elf PRIVATE ${LIBS})
-
-# # Linker - ethernet driver
-# target_link_options(eth.elf PRIVATE ${LDFLAGS})
-# target_compile_options(eth.elf PRIVATE ${CFLAGS})
-# target_include_directories(eth.elf PRIVATE 
-#     "${BOARD_DIR}/include"  
-#     "libubootdrivers/include/public_api/"
-#     "${PICOLIBC_DIR}/include/"
-#     "sddf/include"
-#     "sddf/include/ethernet_config"
-#     "ethernet"
-#     "include"
-# )
-# target_link_libraries(eth.elf PRIVATE ${LIBS})
-
-# # Linker - lwip
-# target_link_options(lwip.elf PRIVATE ${LDFLAGS})
-# target_compile_options(lwip.elf PRIVATE ${CFLAGS})
-# target_include_directories(lwip.elf PRIVATE 
-#     "${BOARD_DIR}/include"  
-#     "libubootdrivers/include/public_api/"
-#     "${PICOLIBC_DIR}/include/"
-#     "sddf/include"
-#     "sddf/include/ethernet_config"
-#     "include"
-# )
-# target_link_libraries(lwip.elf PUBLIC lwip)
-# target_link_libraries(lwip.elf PRIVATE ${LIBS})
-
+if(${MICROKIT_APP} STREQUAL "security_demo")
 # Linker - keyreader
 target_link_options(keyreader.elf PRIVATE ${LDFLAGS})
 target_compile_options(keyreader.elf PRIVATE ${CFLAGS})
@@ -154,30 +124,10 @@ target_link_libraries(crypto.elf PUBLIC ubootdrivers utils microkitdma)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(crypto.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
 target_link_libraries(crypto.elf PRIVATE ${LIBS})
-
-
-# # First define a custom command that creates the image
-# add_custom_command(
-#     OUTPUT "${MICROKIT_APP}.img" "report.txt"  # Assuming these are the output files
-#     COMMAND bash -c "${MICROKIT_SDK}/bin/microkit ../${MICROKIT_APP}.system --search-path ${EXAMPLE_BUILD_DIR} --board ${MICROKIT_BOARD} --config ${MICROKIT_CONFIG} --output ${IMAGE_FILE} --report ${REPORT_FILE}"
-#     DEPENDS ${IMAGES} "${SYSTEM_FILE}"
-#     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} # It's important to set the correct working directory
-#     COMMENT "Generating image and report"
-# )
-
-# # Then define a custom target that depends on the custom command
-# add_custom_target(make-img ALL
-#     DEPENDS "${MICROKIT_APP}.img" "report.txt"
-# )
-
+endif()
 
 add_custom_target(make-img 
     ALL DEPENDS ${IMAGES} "${SYSTEM_FILE}" COMMAND bash -c
     "${MICROKIT_SDK}/bin/microkit ../${MICROKIT_APP}.system --search-path ${EXAMPLE_BUILD_DIR} --board ${MICROKIT_BOARD} --config ${MICROKIT_CONFIG} --output ${IMAGE_FILE} --report ${REPORT_FILE}")
-
-# add_custom_target(make-img 
-#     ALL COMMAND bash -c
-#     "PYTHONPATH=${PYTHONPATH} MICROKIT_SDK=${MICROKIT_SDK} ${MICROKIT_TOOL} ../${MICROKIT_APP}.system --search-path ${BUILD_DIR} --board ${MICROKIT_BOARD} --config ${MICROKIT_CONFIG} -o ${IMAGE_FILE} -r ${REPORT_FILE}")
-
 
 
