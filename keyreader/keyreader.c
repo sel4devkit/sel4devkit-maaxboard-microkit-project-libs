@@ -17,9 +17,6 @@
 #include <stdio_microkit.h>
 #include <sel4_timer.h>
 #include <plat_support.h>
-#include <shared_ringbuffer.h>
-
-uintptr_t data_buffer;
 
 
 void handle_keypress(void) {

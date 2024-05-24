@@ -8,26 +8,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <microkit.h>
-// #include <sel4_dma.h>
 #include <uboot_drivers.h>
 #include <string.h>
 #include <stdio_microkit.h>
-// #include <sel4_timer.h>
 #include <plat_support.h>
-
-/* It should be noted that the Crypto component is not an active component. This means
- * it does not have a main function and does not have an active thread of control.
- * All functionality within the Crypto component is triggered through remote
- * procedure calls:
- *  - circular_buffer_lock_lock and circular_buffer_lock_unlock called by the
- *    Transmitter component.
- *  - clear_text_handle_character called by the KeyReader component.
- * Instead, all functionality within the Crypto component is triggered through remote
- * procedure calls.
- *
- * See documentation on the 'control' keyword within the CAmkES manual for details
- * (https://docs.sel4.systems/projects/camkes/manual.html).
- */
 
 /* ASCII codes for characters referenced in the rot_13 routine */
 #define UC_A 65
@@ -35,12 +19,9 @@
 #define LC_a 97
 #define LC_z 122
 
-uintptr_t data_buffer;
-
-
 /* A buffer of encrypted characters to log to the SD/MMC card */
 #define MMC_TX_BUF_LEN 4096
-uintptr_t data_packet;
+uintptr_t data_buffer;
 int mmc_pending_length = 0;
 
 /* Encryption routine. For the purposes of the demo we use "rot 13" */
@@ -70,7 +51,6 @@ void write_buffer(uintptr_t memory_region, char encrypted_char){
     char* data_buffer_ptr = (char*)data_buffer;
     if (mmc_pending_length < MMC_TX_BUF_LEN){
         data_buffer_ptr[mmc_pending_length] = encrypted_char;
-        printf("Buffer pointer %c\n", data_buffer_ptr[mmc_pending_length]);
     } else{
         printf("Buffer full\n");
     }
@@ -82,9 +62,7 @@ void write_buffer(uintptr_t memory_region, char encrypted_char){
 void handle_character(char c){
     char encrypted_char = rot_13(c);
 
-    printf("Encrypted char %c\n", encrypted_char);
-
-    write_buffer(data_packet, encrypted_char);
+    write_buffer(data_buffer, encrypted_char);
 }
 
 
@@ -105,11 +83,9 @@ notified(microkit_channel ch)
 seL4_MessageInfo_t
 protected(microkit_channel ch, microkit_msginfo msginfo)
 {
-    printf("entering ppcall from keyreader to crypto %d\n", ch);
     char c;
     switch (ch) {
         case 5:
-            // return addr of root_intr_methods
             c = (char) microkit_msginfo_get_label(msginfo);
             handle_character(c);
             break;

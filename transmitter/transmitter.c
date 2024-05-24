@@ -25,14 +25,8 @@ uintptr_t data_buffer;
 uint mmc_pending_length = 0;
 
 
-void write_pending_mmc_log(char* data_buffer_pointer)
+void write_mmc_log(char* data_buffer_pointer)
 {
-
-    /* Track the total number of bytes written to the log file*/
-    static uint total_bytes_written = 0;
-
-    // Test string to write to the file
-    const char test_string[] = "Hello file!";
 
     /* Write all keypresses stored in the 'mmc_pending_tx_buf' buffer to the log file */
     char uboot_cmd[64];
@@ -50,24 +44,21 @@ void write_pending_mmc_log(char* data_buffer_pointer)
 
     // Read then output contents of the file
     sprintf(uboot_cmd, "fatload %s 0x%x %s %x %x",
-        LOG_FILE_DEVICE,   // The U-Boot partition designation
-        &read_string,                // Address to read the data into
-        LOG_FILENAME,    // Filename to read from
-        mmc_pending_length,           // Max number of bytes to read (0 = to end of file)
-        0);                          // The offset in the file to start read from
+        LOG_FILE_DEVICE,    // The U-Boot partition designation
+        &read_string,       // Address to read the data into
+        LOG_FILENAME,       // Filename to read from
+        mmc_pending_length, // Max number of bytes to read (0 = to end of file)
+        0);                 // The offset in the file to start read from
     run_uboot_command(uboot_cmd);
     printf("String read from file %s: %s\n", LOG_FILENAME, read_string);
 
     /* Clear the buffer if writing to the file was successful */
     if (ret >= 0) {
-        total_bytes_written += mmc_pending_length;
-
-        /* All pending characters have now been sent. Clear the buffer */
         memset(data_buffer, 0, mmc_pending_length);
         mmc_pending_length = 0;
     }
 
-    printf("End of write_pending_mmc_log\n");
+    printf("End of write_mmc_log\n");
 }
 
 void
@@ -93,7 +84,7 @@ init_post(void)
     /* List the device tree paths for the devices */
     const_dev_paths, DEV_PATH_COUNT);
 
-    write_pending_mmc_log(data_buffer_ptr);
+    write_mmc_log(data_buffer_ptr);
 
     return 0;
 }
@@ -111,10 +102,8 @@ notified(microkit_channel ch)
 seL4_MessageInfo_t
 protected(microkit_channel ch, microkit_msginfo msginfo)
 {
-    printf("entering ppcall from crypto to transmitter %d\n", ch);
     switch (ch) {
         case 6:
-            // return addr of root_intr_methods
             mmc_pending_length = (int) microkit_msginfo_get_label(msginfo);
             init_post();
             break;
