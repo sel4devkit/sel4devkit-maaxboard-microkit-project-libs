@@ -46,15 +46,14 @@ void write_pending_mmc_log(char* data_buffer_pointer)
     int ret = run_uboot_command(uboot_cmd);
 
     // Test string to read the file into
-    #define MAX_BYTES_TO_READ 32
-    char read_string[MAX_BYTES_TO_READ];
+    char read_string[mmc_pending_length];
 
     // Read then output contents of the file
     sprintf(uboot_cmd, "fatload %s 0x%x %s %x %x",
         LOG_FILE_DEVICE,   // The U-Boot partition designation
         &read_string,                // Address to read the data into
         LOG_FILENAME,    // Filename to read from
-        MAX_BYTES_TO_READ,           // Max number of bytes to read (0 = to end of file)
+        mmc_pending_length,           // Max number of bytes to read (0 = to end of file)
         0);                          // The offset in the file to start read from
     run_uboot_command(uboot_cmd);
     printf("String read from file %s: %s\n", LOG_FILENAME, read_string);
