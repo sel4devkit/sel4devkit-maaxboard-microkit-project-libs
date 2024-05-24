@@ -1,1 +1,18 @@
 ../picolibc
+# Ignore build directories
+build/
+example-build/
+CMakeFiles/
+CMakeCache.txt
+uboot-driver-example/.vscode
+
+# Ignore any other CMake-generated files
+cmake_install.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+Testing/
+Makefile
+
+# Ignore custom build directories (if any)
+*/build/
+*/CMakeFiles/
