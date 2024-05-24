@@ -67,14 +67,21 @@ char rot_13(char src)
     return result;
 }
 
+void write_buffer(uintptr_t memory_region, char encrypted_char){
+
+    char* ptr = memory_region;
+    ptr[mmc_pending_length] = encrypted_char;
+
+    mmc_pending_length++;
+
+}
+
 void handle_character(char c){
     char encrypted_char = rot_13(c);
 
     printf("Encrypted char %c\n", encrypted_char);
 
-    mmc_pending_tx_buf[mmc_pending_length] = encrypted_char;
-
-    mmc_pending_length++;
+    write_buffer(data_packet, encrypted_char);
 
 }
 

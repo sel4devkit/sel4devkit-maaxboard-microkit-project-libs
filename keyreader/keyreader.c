@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <microkit.h>
 #include <sel4_dma.h>
 #include <uboot_drivers.h>
@@ -28,12 +29,20 @@ uint mmc_pending_length = 0;
 
 void handle_keypress(void) {
     printf("Reading input from the USB keyboard:\n");
+    bool enter_pressed = false;
     while(true) {
         while (uboot_stdin_tstc() > 0) {
             char c = uboot_stdin_getc();
+            if (c == 13){
+                enter_pressed = true;
+                break;
+            }
             printf("Received character: %c\n", c, stdout);
 
             microkit_ppcall(5, seL4_MessageInfo_new((uint64_t) c,1,0,0));
+        }
+        if (enter_pressed){
+            break;
         }
         udelay(10000);
     }
