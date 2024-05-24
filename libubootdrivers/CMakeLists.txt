@@ -104,7 +104,7 @@ if(LibUBOOT)
 
         # Set the Ethernet PHY based upon the board
         if(KernelPlatformMaaxboard OR KernelPlatformImx8mq-evk)
-            set(eth_phy_driver "atheros")
+        set(eth_phy_driver "atheros")
         else()
             message(FATAL_ERROR "Unsupported iMX8MQ board. Aborting.")
         endif()

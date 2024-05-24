@@ -38,28 +38,6 @@ fi
 echo "MICROKIT_APP: $MICROKIT_APP"
 echo "PLATFORM: $PLATFORM"
 
-
-# Build SDK
-EXTRACTED_DIR="gcc-arm-10.2-2020.11-x86_64-aarch64-none-elf"
-if [ ! -d "$EXTRACTED_DIR" ]; then
-    curl --output compiler.xz https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-a/10.2-2020.11/binrel/gcc-arm-10.2-2020.11-x86_64-aarch64-none-elf.tar.xz
-    tar -xvf compiler.xz
-    rm -r compiler.xz
-fi
-export PATH=${PWD}/gcc-arm-10.2-2020.11-x86_64-aarch64-none-elf/bin:$PATH
-echo "Do you want to build the sdk? (yes/no)"
-read user_input
-
-# Convert the input to lowercase 
-user_input=$(echo "$user_input" | tr '[:upper:]' '[:lower:]')
-if [ "$user_input" = "yes" ]; then
-    python3 -m venv "pyenv"
-    ./pyenv/bin/pip install --upgrade pip setuptools wheel
-    ./pyenv/bin/pip install -r "requirements.txt"
-    ./pyenv/bin/python build_sdk.py --sel4 ../seL4
-    python3 build_sdk.py --sel4 ../seL4
-fi
-
 # Build picolibc
 echo "Do you want to build picolibc? (yes/no)"
 read user_input1
@@ -76,10 +54,10 @@ if [ "$user_input1" = "yes" ]; then
     ../scripts/do-aarch64-configure-nocrt -Dprefix=${PWD}/../../picolibc_build
     sudo ninja 
     sudo ninja install
+    cd ../../microkit
 fi
 
 # Build application 
-cd ../../microkit
 rm -rf example/maaxboard/$MICROKIT_APP/build
 mkdir example/maaxboard/$MICROKIT_APP/build
 rm -rf example/maaxboard/$MICROKIT_APP/example-build
@@ -87,4 +65,4 @@ mkdir example/maaxboard/$MICROKIT_APP/example-build
 cd example/maaxboard/$MICROKIT_APP/build
 cmake -DMICROKIT_APP=$MICROKIT_APP -DPLATFORM=$PLATFORM $microkit_path
 make 
-echo "Built image is here: ${microkit_path}/example/${PLATFORM}/uboot-driver-example/example-build/sel4_image.img" 
+echo "Built image is here: ${microkit_path}/example/${PLATFORM}/${MICROKIT_APP}/example-build/sel4_image.img" 
