@@ -28,7 +28,7 @@ uint mmc_pending_length = 0;
 
 void handle_keypress(void) {
     printf("Reading input from the USB keyboard:\n");
-    for (int x = 0; x <= 1000; x++) {
+    while(true) {
         while (uboot_stdin_tstc() > 0) {
             char c = uboot_stdin_getc();
             printf("Received character: %c\n", c, stdout);

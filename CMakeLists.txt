@@ -35,7 +35,7 @@ set(REPORT_FILE ${EXAMPLE_BUILD_DIR}/report.txt)
 
 set(libUbootPlatform ${PLATFORM})
 
-# Check if MY_VARIABLE is equal to "uboot-driver-example"
+# Set Macros depending on the application 
 if(${MICROKIT_APP} STREQUAL "uboot-driver-example")
     add_definitions(-DUBOOT_DRIVER_EXAMPLE)
 endif()
