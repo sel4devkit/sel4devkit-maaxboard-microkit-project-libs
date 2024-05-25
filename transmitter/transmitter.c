@@ -16,6 +16,7 @@
 #include <stdio_microkit.h>
 #include <sel4_timer.h>
 #include <plat_support.h>
+#include <mmc_platform_devices.h>
 
 #define LOG_FILE_DEVICE "mmc 0:1"  // Partition 1 on mmc device 0
 #define LOG_FILENAME  "log.txt"
