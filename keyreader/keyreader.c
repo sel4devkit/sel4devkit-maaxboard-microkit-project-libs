@@ -16,8 +16,8 @@
 #include <math.h>
 #include <stdio_microkit.h>
 #include <sel4_timer.h>
-#include <plat_support.h>
-#include <usb_platform_devices.h>
+#include <plat/plat_support.h>
+#include <plat/usb_platform_devices.h>
 
 
 void handle_keypress(void) {

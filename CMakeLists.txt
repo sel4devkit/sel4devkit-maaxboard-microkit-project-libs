@@ -64,8 +64,8 @@ endif()
 
 if(${MICROKIT_APP} STREQUAL "security_demo")
 add_executable(keyreader.elf keyreader/keyreader.c)
-add_executable(transmitter.elf transmitter/transmitter.c)
-add_executable(crypto.elf crypto/crypto.c)
+add_executable(transmitter.elf transmitter/transmitter.c src/circular_buffer.c)
+add_executable(crypto.elf crypto/crypto.c src/circular_buffer.c)
 endif()
 
 if(${MICROKIT_APP} STREQUAL "uboot-driver-example")
@@ -91,7 +91,7 @@ target_include_directories(keyreader.elf PRIVATE
     "${BOARD_DIR}/include"  
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/"
-    "include/plat"
+    "include"
 )
 target_link_libraries(keyreader.elf PUBLIC ubootdrivers utils microkitdma)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
@@ -105,7 +105,7 @@ target_include_directories(transmitter.elf PRIVATE
     "${BOARD_DIR}/include"  
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/"
-    "include/plat"
+    "include"
 )
 target_link_libraries(transmitter.elf PUBLIC ubootdrivers)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
@@ -118,7 +118,7 @@ target_compile_options(crypto.elf PRIVATE ${CFLAGS})
 target_include_directories(crypto.elf PRIVATE 
     "${BOARD_DIR}/include"  
     "${PICOLIBC_DIR}/include/"
-    "include/plat"
+    "include"
 )
 target_link_libraries(crypto.elf PUBLIC ubootdrivers utils microkitdma)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
