@@ -24,8 +24,9 @@ void handle_keypress(void) {
     printf("Reading input from the USB keyboard:\n");
     bool enter_pressed = false;
 
-    for(int i = 0; i < 10; i++){
-        char c = (char)(i + 65);
+    while(1){
+        char c = 'a';
+        printf("Received character: %c\n", c);
         microkit_ppcall(5, seL4_MessageInfo_new((uint64_t) c,1,0,0));
     }
     // microkit_notify(5);

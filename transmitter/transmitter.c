@@ -94,28 +94,7 @@ void recieve_data_from_cypto(){
 
 void
 init_post(void)
-{
-    const char *const_dev_paths[] = DEV_PATHS;
-
-    // Initalise DMA manager
-    microkit_dma_manager(&dma_manager);
-
-    // Initialise DMA
-    microkit_dma_init(dma_base, dma_size,
-        4096, 1);
-
-    // Initialise uboot library
-    initialise_uboot_drivers(
-    dma_manager,
-    incbin_device_tree_start,
-    /* List the device tree paths for the devices */
-    const_dev_paths, DEV_PATH_COUNT);
-    
-    /* Delete any existing log file to ensure we start with an empty file */
-    char uboot_cmd[64];
-    sprintf(uboot_cmd, "fatrm %s %s", LOG_FILE_DEVICE, LOG_FILENAME);
-    run_uboot_command(uboot_cmd);
-
+{   
     printf("init_post of transmitter\n");
 
     /* Now poll for events and handle them */
@@ -141,6 +120,8 @@ init_post(void)
             idle_cycle = false;
             last_log_file_write_time = uboot_monotonic_timer_get_us();
             write_pending_mmc_log();
+            microkit_notify(7);
+            break;
         }
 
         /* Sleep on idle cycles to prevent busy looping */
@@ -155,6 +136,26 @@ init_post(void)
 void
 init(void)
 {
+    const char *const_dev_paths[] = DEV_PATHS;
+
+    // Initalise DMA manager
+    microkit_dma_manager(&dma_manager);
+
+    // Initialise DMA
+    microkit_dma_init(dma_base, dma_size,
+        4096, 1);
+
+    // Initialise uboot library
+    initialise_uboot_drivers(
+    dma_manager,
+    incbin_device_tree_start,
+    /* List the device tree paths for the devices */
+    const_dev_paths, DEV_PATH_COUNT);
+
+    /* Delete any existing log file to ensure we start with an empty file */
+    char uboot_cmd[64];
+    sprintf(uboot_cmd, "fatrm %s %s", LOG_FILE_DEVICE, LOG_FILENAME);
+    run_uboot_command(uboot_cmd);
 
 }
 
