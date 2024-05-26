@@ -53,22 +53,20 @@ void write_buffer(uintptr_t memory_region, char encrypted_char){
     cb->lock = true;
     // MIGHT NEED DELAY HERE TO STOP WRITING AND READING AT SAME TIME
 
+    printf("Encrypted char %c\n", encrypted_char);
+
     circular_buffer_put(circular_buffer, encrypted_char);
 
     cb->lock = false;
 
-    char* data_buffer_ptr = (char*)data_buffer;
-    if (mmc_pending_length < MMC_TX_BUF_LEN){
-        data_buffer_ptr[mmc_pending_length] = encrypted_char;
-    } else{
-        printf("Buffer full\n");
+    if (circular_buffer_full(cb)){
+        microkit_notify(6);
     }
-
-    mmc_pending_length++;
-
 }
 
 void handle_character(char c){
+    printf("In handle character\n");
+    printf("Char is %c\n", c);
     char encrypted_char = rot_13(c);
 
     write_buffer(data_buffer, encrypted_char);
@@ -86,7 +84,7 @@ notified(microkit_channel ch)
 {
     switch (ch){
         case 5:
-        microkit_ppcall(6, seL4_MessageInfo_new((uint64_t) mmc_pending_length,1,0,0));
+        printf("In crytp notified\n");
     }
 }
 

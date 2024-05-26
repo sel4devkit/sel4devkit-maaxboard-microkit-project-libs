@@ -32,20 +32,20 @@ uint mmc_pending_length = 0;
 
 uintptr_t data_buffer;
 uintptr_t circular_buffer;
-
-
-
 void write_pending_mmc_log()
 {
+    printf("mmc buffer %c\n", mmc_pending_tx_buf[0]);
+    printf("mmc buffer %c\n", mmc_pending_tx_buf[1]);
 
     /* Track the total number of bytes written to the log file*/
     static uint total_bytes_written = 0;
+    printf("mmc_pending_tx_buf %x", &mmc_pending_tx_buf);
 
     /* Write all keypresses stored in the 'mmc_pending_tx_buf' buffer to the log file */
     char uboot_cmd[64];
     sprintf(uboot_cmd, "fatwrite %s 0x%x %s %x %x",
         LOG_FILE_DEVICE,        // The U-Boot partition designation
-        mmc_pending_tx_buf,    // Address of the buffer to write
+        &mmc_pending_tx_buf,    // Address of the buffer to write
         LOG_FILENAME,           // Filename to log to
         mmc_pending_length,     // The number of bytes to write
         total_bytes_written);   // The offset in the file to start writing from
@@ -78,22 +78,23 @@ void write_pending_mmc_log()
 }
 
 void recieve_data_from_cypto(){
-
+    // printf("recieve_data_from_cypto\n");
     circular_buffer_t* cb = (circular_buffer_t*)circular_buffer;
-    char encrypted_char = circular_buffer_get(cb);
-    /* Store the read character in the buffer of pending data to log to SD/MMC. */
-    /* If the buffer is full then discard the character */
-    if (mmc_pending_length < MMC_TX_BUF_LEN) {
-        mmc_pending_tx_buf[mmc_pending_length] = encrypted_char;
-        mmc_pending_length += 1;
+    while(!circular_buffer_empty(cb)){
+        char encrypted_char = circular_buffer_get(cb);
+        // printf("encrypted char %c\n", encrypted_char);
+        /* Store the read character in the buffer of pending data to log to SD/MMC. */
+        /* If the buffer is full then discard the character */
+        if (mmc_pending_length < MMC_TX_BUF_LEN) {
+            mmc_pending_tx_buf[mmc_pending_length] = encrypted_char;
+            mmc_pending_length += 1;
+        }
     }
 }
 
 void
 init_post(void)
 {
-    char* data_buffer_ptr = (char*)data_buffer;
-    
     const char *const_dev_paths[] = DEV_PATHS;
 
     // Initalise DMA manager
@@ -109,17 +110,13 @@ init_post(void)
     incbin_device_tree_start,
     /* List the device tree paths for the devices */
     const_dev_paths, DEV_PATH_COUNT);
-
-    return 0;
-}
-
-void
-init(void)
-{
+    
     /* Delete any existing log file to ensure we start with an empty file */
     char uboot_cmd[64];
     sprintf(uboot_cmd, "fatrm %s %s", LOG_FILE_DEVICE, LOG_FILENAME);
     run_uboot_command(uboot_cmd);
+
+    printf("init_post of transmitter\n");
 
     /* Now poll for events and handle them */
     bool idle_cycle;
@@ -127,11 +124,12 @@ init(void)
 
     circular_buffer_t* cb = (circular_buffer_t*)circular_buffer;
 
-    while(1) {
+    while(true) {
+        // printf("In while loop\n");
         idle_cycle = true;
 
         /* Process notification of receipt of encrypted characters */
-        if (cb->lock == false) {
+        if (cb->lock == false && !circular_buffer_empty(cb)) {
             idle_cycle = false;
             recieve_data_from_cypto();
         }
@@ -151,19 +149,34 @@ init(void)
         }
     }
 
+    return 0;
+}
+
+void
+init(void)
+{
+
 }
 
 void
 notified(microkit_channel ch)
 {
+    printf("Microkit notify crypto to transmitter on %d\n", ch);
+    switch (ch) {
+        case 6:
+            init_post();
+            break;
+        default:
+            printf("crypto received protected unexpected channel\n");
+    }
 }
 
 seL4_MessageInfo_t
 protected(microkit_channel ch, microkit_msginfo msginfo)
 {
+    printf("Microkit notify crypto to transmitter on %d\n", ch);
     switch (ch) {
         case 6:
-            mmc_pending_length = (int) microkit_msginfo_get_label(msginfo);
             init_post();
             break;
         default:

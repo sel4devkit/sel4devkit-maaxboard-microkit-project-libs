@@ -33,6 +33,9 @@ bool circular_buffer_empty(circular_buffer_t *cb) {
 void circular_buffer_put(circular_buffer_t *cb, char data) {
     cb->buffer[cb->head] = data;
 
+    printf("cb head %c\n", cb->buffer[cb->head]);
+    printf("cb tail %c\n", cb->buffer[cb->tail]);
+
     if(cb->full) {
         cb->tail = (cb->tail + 1) % cb->max;
     }
