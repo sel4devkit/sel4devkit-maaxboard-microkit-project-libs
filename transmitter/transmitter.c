@@ -120,7 +120,7 @@ init_post(void)
             idle_cycle = false;
             last_log_file_write_time = uboot_monotonic_timer_get_us();
             write_pending_mmc_log();
-            microkit_notify(7);
+            // microkit_notify(7);
             break;
         }
 

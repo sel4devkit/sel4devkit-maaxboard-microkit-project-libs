@@ -24,12 +24,15 @@ void handle_keypress(void) {
     printf("Reading input from the USB keyboard:\n");
     bool enter_pressed = false;
 
-    while(1){
-        char c = 'a';
-        printf("Received character: %c\n", c);
-        microkit_ppcall(5, seL4_MessageInfo_new((uint64_t) c,1,0,0));
-    }
+    while(true) {
+        while (uboot_stdin_tstc() > 0) {
+            char c = uboot_stdin_getc();
+            printf("Received character: %c\n", c, stdout);
+            microkit_ppcall(5, seL4_MessageInfo_new((uint64_t) c,1,0,0));
+            udelay(10000);
+        }
     // microkit_notify(5);
+    }
 }
 
 void
