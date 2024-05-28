@@ -21,7 +21,7 @@
 #include <circular_buffer.h>
 
 #define LOG_FILE_DEVICE "mmc 0:1"  // Partition 1 on mmc device 0
-#define LOG_FILENAME  "log.txt"
+#define LOG_FILENAME  "transmitter_log.txt"
 #define LOG_FILE_WRITE_PERIOD_US 30000000  // Time between log file writes (30 seconds)
 
 
