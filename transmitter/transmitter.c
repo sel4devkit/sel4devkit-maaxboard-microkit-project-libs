@@ -32,6 +32,13 @@ uint mmc_pending_length = 0;
 
 uintptr_t data_buffer;
 uintptr_t circular_buffer;
+
+// DMA state
+static ps_dma_man_t dma_manager;
+uintptr_t dma_base_2;
+uintptr_t dma_cp_paddr_2;
+size_t dma_size = 0x100000;
+
 void write_pending_mmc_log()
 {
     printf("mmc buffer %c\n", mmc_pending_tx_buf[0]);
@@ -100,23 +107,23 @@ init_post(void)
     const char *const_dev_paths[] = DEV_PATHS;
 
     // Initalise DMA manager
-    microkit_dma_manager(&dma_manager);
+    // microkit_dma_manager(&dma_manager);
 
-    // Initialise DMA
-    microkit_dma_init(dma_base, dma_size,
-        4096, 1);
+    // // Initialise DMA
+    // microkit_dma_init(dma_base_2, dma_size,
+    //     4096, 1);
 
-    // Initialise uboot library
-    initialise_uboot_drivers(
-    dma_manager,
-    incbin_device_tree_start,
-    /* List the device tree paths for the devices */
-    const_dev_paths, DEV_PATH_COUNT);
+    // // Initialise uboot library
+    // initialise_uboot_drivers(
+    // dma_manager,
+    // incbin_device_tree_start,
+    // /* List the device tree paths for the devices */
+    // const_dev_paths, DEV_PATH_COUNT);
 
      /* Delete any existing log file to ensure we start with an empty file */
-    char uboot_cmd[64];
-    sprintf(uboot_cmd, "fatrm %s %s", LOG_FILE_DEVICE, LOG_FILENAME);
-    run_uboot_command(uboot_cmd);
+    // char uboot_cmd[64];
+    // sprintf(uboot_cmd, "fatrm %s %s", LOG_FILE_DEVICE, LOG_FILENAME);
+    // run_uboot_command(uboot_cmd);
 
 
     /* Now poll for events and handle them */
@@ -161,18 +168,18 @@ init(void)
     const char *const_dev_paths[] = DEV_PATHS;
 
     // Initalise DMA manager
-    // microkit_dma_manager(&dma_manager);
+    microkit_dma_manager(&dma_manager);
 
-    // // Initialise DMA
-    // microkit_dma_init(dma_base, dma_size,
-    //     4096, 1);
+    // Initialise DMA
+    microkit_dma_init(dma_base_2, dma_size,
+        4096, 1);
 
     // Initialise uboot library
-    // initialise_uboot_drivers(
-    // dma_manager,
-    // incbin_device_tree_start,
-    // /* List the device tree paths for the devices */
-    // const_dev_paths, DEV_PATH_COUNT);
+    initialise_uboot_drivers(
+    dma_manager,
+    incbin_device_tree_start,
+    /* List the device tree paths for the devices */
+    const_dev_paths, DEV_PATH_COUNT);
 
 }
 

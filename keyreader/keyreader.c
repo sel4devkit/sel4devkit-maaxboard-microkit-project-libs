@@ -19,10 +19,15 @@
 #include <plat/plat_support.h>
 #include <plat/usb_platform_devices.h>
 
+// DMA state
+static ps_dma_man_t dma_manager;
+uintptr_t dma_base_1;
+uintptr_t dma_cp_paddr_1;
+size_t dma_size = 0x100000;
+
 
 void handle_keypress(void) {
     printf("Reading input from the USB keyboard:\n");
-    bool enter_pressed = false;
 
     while(true) {
         while (uboot_stdin_tstc() > 0) {
@@ -44,7 +49,7 @@ init(void)
     microkit_dma_manager(&dma_manager);
     
     // Initialise DMA
-    microkit_dma_init(dma_base, dma_size,
+    microkit_dma_init(dma_base_1, dma_size,
         4096, 1);
 
     // Initialise uboot library
@@ -74,4 +79,12 @@ init(void)
 void
 notified(microkit_channel ch)
 {
+    printf("Microkit notify crypto to keyreader on %d\n", ch);
+    switch (ch) {
+        case 5:
+            handle_keypress();
+            break;
+        default:
+            printf("crypto received protected unexpected channel\n");
+    }
 }

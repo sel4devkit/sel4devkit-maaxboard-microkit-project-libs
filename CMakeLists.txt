@@ -49,8 +49,13 @@ endif()
 # Add libraries 
 add_subdirectory(libubootdrivers)
 add_subdirectory(libutils)
-add_subdirectory(libmicrokitdma)
-target_include_directories(microkitdma PUBLIC 
+add_subdirectory(libmicrokitdma_keyreader)
+target_include_directories(microkitdma_keyreader PUBLIC 
+    "${BOARD_DIR}/include" 
+    "libubootdrivers/include/public_api/"
+    "${PICOLIBC_DIR}/include/")
+add_subdirectory(libmicrokitdma_transmitter)
+target_include_directories(microkitdma_transmitter PUBLIC 
     "${BOARD_DIR}/include" 
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/")
@@ -93,7 +98,7 @@ target_include_directories(keyreader.elf PRIVATE
     "${PICOLIBC_DIR}/include/"
     "include"
 )
-target_link_libraries(keyreader.elf PUBLIC ubootdrivers utils microkitdma)
+target_link_libraries(keyreader.elf PUBLIC ubootdrivers utils microkitdma_keyreader)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(keyreader.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
 target_link_libraries(keyreader.elf PRIVATE ${LIBS})
@@ -107,7 +112,7 @@ target_include_directories(transmitter.elf PRIVATE
     "${PICOLIBC_DIR}/include/"
     "include"
 )
-target_link_libraries(transmitter.elf PUBLIC ubootdrivers)
+target_link_libraries(transmitter.elf PUBLIC ubootdrivers utils microkitdma_transmitter)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(transmitter.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
 target_link_libraries(transmitter.elf PRIVATE ${LIBS})
@@ -120,7 +125,7 @@ target_include_directories(crypto.elf PRIVATE
     "${PICOLIBC_DIR}/include/"
     "include"
 )
-target_link_libraries(crypto.elf PUBLIC ubootdrivers utils microkitdma)
+target_link_libraries(crypto.elf PUBLIC ubootdrivers utils)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(crypto.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
 target_link_libraries(crypto.elf PRIVATE ${LIBS})
