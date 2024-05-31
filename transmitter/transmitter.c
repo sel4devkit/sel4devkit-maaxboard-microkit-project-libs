@@ -106,12 +106,6 @@ init_post(void)
 
     const char *const_dev_paths[] = DEV_PATHS;
 
-    // Initalise DMA manager
-    microkit_dma_manager(&dma_manager);
-
-    // Initialise DMA
-    microkit_dma_init(dma_base_2, dma_size, 4096, 1);
-
     // Initialise uboot library
     initialise_uboot_drivers(
     dma_manager,
@@ -120,9 +114,9 @@ init_post(void)
     const_dev_paths, DEV_PATH_COUNT);
 
      /* Delete any existing log file to ensure we start with an empty file */
-    char uboot_cmd[64];
-    sprintf(uboot_cmd, "fatrm %s %s", LOG_FILE_DEVICE, LOG_FILENAME);
-    run_uboot_command(uboot_cmd);
+    // char uboot_cmd[64];
+    // sprintf(uboot_cmd, "fatrm %s %s", LOG_FILE_DEVICE, LOG_FILENAME);
+    // run_uboot_command(uboot_cmd);
 
 
     /* Now poll for events and handle them */
@@ -164,21 +158,13 @@ init_post(void)
 void
 init(void)
 {
-    // const char *const_dev_paths[] = DEV_PATHS;
 
-    // // Initalise DMA manager
-    // microkit_dma_manager(&dma_manager);
+    // Initalise DMA manager
+    microkit_dma_manager(&dma_manager);
 
-    // // Initialise DMA
-    // microkit_dma_init(dma_base_2, dma_size,
-    //     4096, 1);
-
-    // // Initialise uboot library
-    // initialise_uboot_drivers(
-    // dma_manager,
-    // incbin_device_tree_start,
-    // /* List the device tree paths for the devices */
-    // const_dev_paths, DEV_PATH_COUNT);
+    // Initialise DMA
+    microkit_dma_init(dma_base_2, dma_size,
+        4096, 1);
 
 }
 
