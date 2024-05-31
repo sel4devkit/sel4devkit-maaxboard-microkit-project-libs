@@ -17,7 +17,7 @@
 #include <stdio_microkit.h>
 #include <sel4_timer.h>
 #include <plat/plat_support.h>
-#include <plat/mmc_platform_devices.h>
+#include <mmc_platform_devices.h>
 #include <circular_buffer.h>
 
 #define LOG_FILE_DEVICE "mmc 0:1"  // Partition 1 on mmc device 0

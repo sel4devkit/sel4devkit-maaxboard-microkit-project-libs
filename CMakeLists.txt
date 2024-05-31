@@ -97,6 +97,7 @@ target_include_directories(keyreader.elf PRIVATE
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/"
     "include"
+    "include/plat/${PLATFORM}/"
 )
 target_link_libraries(keyreader.elf PUBLIC ubootdrivers utils microkitdma_keyreader)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
@@ -111,6 +112,7 @@ target_include_directories(transmitter.elf PRIVATE
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/"
     "include"
+    "include/plat/${PLATFORM}/"
 )
 target_link_libraries(transmitter.elf PUBLIC ubootdrivers utils microkitdma_transmitter)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)

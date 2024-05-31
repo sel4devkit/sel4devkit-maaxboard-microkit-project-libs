@@ -17,7 +17,7 @@
 #include <stdio_microkit.h>
 #include <sel4_timer.h>
 #include <plat/plat_support.h>
-#include <plat/usb_platform_devices.h>
+#include <usb_platform_devices.h>
 
 // DMA state
 static ps_dma_man_t dma_manager;
