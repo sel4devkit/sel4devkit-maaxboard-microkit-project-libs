@@ -16,29 +16,26 @@
 #include <math.h>
 #include <stdio_microkit.h>
 #include <sel4_timer.h>
-#include <plat_support.h>
+#include <plat/plat_support.h>
+#include <usb_platform_devices.h>
 
+// DMA state
+static ps_dma_man_t dma_manager;
+uintptr_t dma_base_1;
+uintptr_t dma_cp_paddr_1;
+size_t dma_size = 0x100000;
 
 void handle_keypress(void) {
     printf("Reading input from the USB keyboard:\n");
-    bool enter_pressed = false;
+
     while(true) {
         while (uboot_stdin_tstc() > 0) {
             char c = uboot_stdin_getc();
-            if (c == 13){
-                enter_pressed = true;
-                break;
-            }
             printf("Received character: %c\n", c, stdout);
-
             microkit_ppcall(5, seL4_MessageInfo_new((uint64_t) c,1,0,0));
+            udelay(10000);
         }
-        if (enter_pressed){
-            break;
-        }
-        udelay(10000);
     }
-    microkit_notify(5);
 }
 
 void
@@ -50,7 +47,7 @@ init(void)
     microkit_dma_manager(&dma_manager);
     
     // Initialise DMA
-    microkit_dma_init(dma_base, dma_size,
+    microkit_dma_init(dma_base_1, dma_size,
         4096, 1);
 
     // Initialise uboot library

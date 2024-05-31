@@ -674,7 +674,7 @@ if(LibUBOOT)
         "${BOARD_DIR}/include"
     )
 
-    target_link_libraries(ubootdrivers utils microkitdma)
+    target_link_libraries(ubootdrivers utils microkitdma_keyreader)
 
     #########################
     # Manage logging levels #

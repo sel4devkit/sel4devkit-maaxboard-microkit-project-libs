@@ -22,10 +22,12 @@ set(DTB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/boards/${PLATFORM}.dtb)
 
 set(BOARD_DIR ${MICROKIT_SDK}/board/${MICROKIT_BOARD}/${MICROKIT_CONFIG})
 set(PICOLIBC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../picolibc_build/picolibc/aarch64-linux-gnu)
+set(PICOLIBC_DIR_1 ${CMAKE_CURRENT_SOURCE_DIR}/../picolibc_build_1/picolibc/aarch64-linux-gnu)
 
 set(CFLAGS -mcpu=${CPU} "-DDTB_PATH=\"${DTB_PATH}\"" -nostdlib -ffreestanding -Wall -Wno-unused-function)
 set(LDFLAGS -L${BOARD_DIR}/lib -nostdlib)
 set(LIBS -lmicrokit -Tmicrokit.ld -lgcc -L${PICOLIBC_DIR}/lib -lc -lm -lgcc)
+set(LIBS_1 -lmicrokit -Tmicrokit.ld -lgcc -L${PICOLIBC_DIR_1}/lib -lc -lm -lgcc)
 
 set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/example/${PLATFORM}/${MICROKIT_APP})
 set(BUILD_DIR ${PROJECT_DIR}/build)
@@ -49,8 +51,13 @@ endif()
 # Add libraries 
 add_subdirectory(libubootdrivers)
 add_subdirectory(libutils)
-add_subdirectory(libmicrokitdma)
-target_include_directories(microkitdma PUBLIC 
+add_subdirectory(libmicrokitdma_keyreader)
+target_include_directories(microkitdma_keyreader PUBLIC 
+    "${BOARD_DIR}/include" 
+    "libubootdrivers/include/public_api/"
+    "${PICOLIBC_DIR}/include/")
+add_subdirectory(libmicrokitdma_transmitter)
+target_include_directories(microkitdma_transmitter PUBLIC 
     "${BOARD_DIR}/include" 
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/")
@@ -64,8 +71,8 @@ endif()
 
 if(${MICROKIT_APP} STREQUAL "security_demo")
 add_executable(keyreader.elf keyreader/keyreader.c)
-add_executable(transmitter.elf transmitter/transmitter.c)
-add_executable(crypto.elf crypto/crypto.c)
+add_executable(transmitter.elf transmitter/transmitter.c src/circular_buffer.c)
+add_executable(crypto.elf crypto/crypto.c src/circular_buffer.c)
 endif()
 
 if(${MICROKIT_APP} STREQUAL "uboot-driver-example")
@@ -92,8 +99,9 @@ target_include_directories(keyreader.elf PRIVATE
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/"
     "include"
+    "include/plat/${PLATFORM}/"
 )
-target_link_libraries(keyreader.elf PUBLIC ubootdrivers utils microkitdma)
+target_link_libraries(keyreader.elf PUBLIC ubootdrivers utils microkitdma_keyreader)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(keyreader.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
 target_link_libraries(keyreader.elf PRIVATE ${LIBS})
@@ -106,11 +114,12 @@ target_include_directories(transmitter.elf PRIVATE
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/"
     "include"
+    "include/plat/${PLATFORM}/"
 )
-target_link_libraries(transmitter.elf PUBLIC ubootdrivers)
+target_link_libraries(transmitter.elf PUBLIC ubootdrivers utils microkitdma_transmitter)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(transmitter.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
-target_link_libraries(transmitter.elf PRIVATE ${LIBS})
+target_link_libraries(transmitter.elf PRIVATE ${LIBS_1})
 
 # Linker - crypto
 target_link_options(crypto.elf PRIVATE ${LDFLAGS})
@@ -120,7 +129,7 @@ target_include_directories(crypto.elf PRIVATE
     "${PICOLIBC_DIR}/include/"
     "include"
 )
-target_link_libraries(crypto.elf PUBLIC ubootdrivers utils microkitdma)
+target_link_libraries(crypto.elf PUBLIC ubootdrivers utils)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(crypto.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
 target_link_libraries(crypto.elf PRIVATE ${LIBS})

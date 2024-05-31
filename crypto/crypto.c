@@ -11,7 +11,8 @@
 #include <uboot_drivers.h>
 #include <string.h>
 #include <stdio_microkit.h>
-#include <plat_support.h>
+#include <plat/plat_support.h>
+#include <circular_buffer.h>
 
 /* ASCII codes for characters referenced in the rot_13 routine */
 #define UC_A 65
@@ -22,6 +23,7 @@
 /* A buffer of encrypted characters to log to the SD/MMC card */
 #define MMC_TX_BUF_LEN 4096
 uintptr_t data_buffer;
+uintptr_t circular_buffer;
 int mmc_pending_length = 0;
 
 /* Encryption routine. For the purposes of the demo we use "rot 13" */
@@ -47,37 +49,39 @@ char rot_13(char src)
 }
 
 void write_buffer(uintptr_t memory_region, char encrypted_char){
+    circular_buffer_t* cb = (circular_buffer_t*)circular_buffer;
+    cb->lock = true;
+    // MIGHT NEED DELAY HERE TO STOP WRITING AND READING AT SAME TIME
 
-    char* data_buffer_ptr = (char*)data_buffer;
-    if (mmc_pending_length < MMC_TX_BUF_LEN){
-        data_buffer_ptr[mmc_pending_length] = encrypted_char;
-    } else{
-        printf("Buffer full\n");
+    printf("Encrypted char %c\n", encrypted_char);
+
+    circular_buffer_put(circular_buffer, encrypted_char);
+
+    cb->lock = false;
+
+    if (circular_buffer_full(cb)){
+        microkit_notify(6);
     }
-
-    mmc_pending_length++;
-
 }
 
 void handle_character(char c){
+    printf("In handle character\n");
+    printf("Char is %c\n", c);
     char encrypted_char = rot_13(c);
 
     write_buffer(data_buffer, encrypted_char);
 }
 
 
-
 void init()
-{   
+{ 
+    size_t buffer_size = 5;
+    circular_buffer = circular_buffer_init(circular_buffer, buffer_size, data_buffer);
 }
 
 void
 notified(microkit_channel ch)
 {
-    switch (ch){
-        case 5:
-        microkit_ppcall(6, seL4_MessageInfo_new((uint64_t) mmc_pending_length,1,0,0));
-    }
 }
 
 seL4_MessageInfo_t
