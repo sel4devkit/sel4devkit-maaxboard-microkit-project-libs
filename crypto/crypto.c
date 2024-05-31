@@ -62,8 +62,6 @@ void write_buffer(uintptr_t memory_region, char encrypted_char){
     if (circular_buffer_full(cb)){
         microkit_notify(6);
     }
-
-    microkit_notify(5);
 }
 
 void handle_character(char c){
@@ -84,10 +82,6 @@ void init()
 void
 notified(microkit_channel ch)
 {
-    switch (ch){
-        case 5:
-        printf("In crytp notified\n");
-    }
 }
 
 seL4_MessageInfo_t

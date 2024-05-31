@@ -25,7 +25,6 @@ uintptr_t dma_base_1;
 uintptr_t dma_cp_paddr_1;
 size_t dma_size = 0x100000;
 
-
 void handle_keypress(void) {
     printf("Reading input from the USB keyboard:\n");
 
@@ -36,7 +35,6 @@ void handle_keypress(void) {
             microkit_ppcall(5, seL4_MessageInfo_new((uint64_t) c,1,0,0));
             udelay(10000);
         }
-    // microkit_notify(5);
     }
 }
 
@@ -79,12 +77,4 @@ init(void)
 void
 notified(microkit_channel ch)
 {
-    printf("Microkit notify crypto to keyreader on %d\n", ch);
-    switch (ch) {
-        case 5:
-            handle_keypress();
-            break;
-        default:
-            printf("crypto received protected unexpected channel\n");
-    }
 }

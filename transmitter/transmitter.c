@@ -41,12 +41,8 @@ size_t dma_size = 0x100000;
 
 void write_pending_mmc_log()
 {
-    printf("mmc buffer %c\n", mmc_pending_tx_buf[0]);
-    printf("mmc buffer %c\n", mmc_pending_tx_buf[1]);
-
     /* Track the total number of bytes written to the log file*/
     static uint total_bytes_written = 0;
-    printf("mmc_pending_tx_buf %x", &mmc_pending_tx_buf);
 
     /* Write all keypresses stored in the 'mmc_pending_tx_buf' buffer to the log file */
     char uboot_cmd[64];
@@ -71,7 +67,6 @@ void write_pending_mmc_log()
     run_uboot_command(uboot_cmd);
     printf("String read from file %s: %s\n", LOG_FILENAME, read_string);
 
-    /* Clear the buffer if writing to the file was successful */
     /* Clear the buffer if writing to the file was successful */
     if (ret >= 0) {
         total_bytes_written += mmc_pending_length;
@@ -158,14 +153,12 @@ init_post(void)
 void
 init(void)
 {
-
     // Initalise DMA manager
     microkit_dma_manager(&dma_manager);
 
     // Initialise DMA
     microkit_dma_init(dma_base_2, dma_size,
         4096, 1);
-
 }
 
 void
@@ -179,18 +172,4 @@ notified(microkit_channel ch)
         default:
             printf("crypto received protected unexpected channel\n");
     }
-}
-
-seL4_MessageInfo_t
-protected(microkit_channel ch, microkit_msginfo msginfo)
-{
-    printf("Microkit notify crypto to transmitter on %d\n", ch);
-    switch (ch) {
-        case 6:
-            init_post();
-            break;
-        default:
-            printf("crypto received protected unexpected channel\n");
-    }
-    return seL4_MessageInfo_new(0,0,0,0);
 }
