@@ -8,7 +8,7 @@ project(${MICROKIT_APP} LANGUAGES C)
 
 set(LD ${TOOLCHAIN}-ld)
 set(CMAKE_ASM_COMPILER ${TOOLCHAIN}-as)
-set(MICROKIT_DIR /packages/microkit/auts_microkit_stable_plus_big_stack)
+set(MICROKIT_DIR /packages/microkit/auts_microkit_stable)
 
 # Microkit specific information
 set(MICROKIT_SDK ${MICROKIT_DIR}/release/microkit-sdk-1.2.6)
@@ -27,7 +27,6 @@ set(PICOLIBC_DIR_1 ${CMAKE_CURRENT_SOURCE_DIR}/../picolibc_build_1/picolibc/aarc
 set(CFLAGS -mcpu=${CPU} "-DDTB_PATH=\"${DTB_PATH}\"" -nostdlib -ffreestanding -Wall -Wno-unused-function)
 set(LDFLAGS -L${BOARD_DIR}/lib -nostdlib)
 set(LIBS -lmicrokit -Tmicrokit.ld -lgcc -L${PICOLIBC_DIR}/lib -lc -lm -lgcc)
-set(LIBS_1 -lmicrokit -Tmicrokit.ld -lgcc -L${PICOLIBC_DIR_1}/lib -lc -lm -lgcc)
 
 set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/example/${PLATFORM}/${MICROKIT_APP})
 set(BUILD_DIR ${PROJECT_DIR}/build)
@@ -119,7 +118,7 @@ target_include_directories(transmitter.elf PRIVATE
 target_link_libraries(transmitter.elf PUBLIC ubootdrivers utils microkitdma_transmitter)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(transmitter.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
-target_link_libraries(transmitter.elf PRIVATE ${LIBS_1})
+target_link_libraries(transmitter.elf PRIVATE ${LIBS})
 
 # Linker - crypto
 target_link_options(crypto.elf PRIVATE ${LDFLAGS})
