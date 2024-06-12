@@ -8,7 +8,7 @@ project(${MICROKIT_APP} LANGUAGES C)
 
 set(LD ${TOOLCHAIN}-ld)
 set(CMAKE_ASM_COMPILER ${TOOLCHAIN}-as)
-set(MICROKIT_DIR /packages/microkit/auts_microkit_stable)
+set(MICROKIT_DIR /packages/microkit/auts_microkit_stable_plus_big_stack)
 
 # Microkit specific information
 set(MICROKIT_SDK ${MICROKIT_DIR}/release/microkit-sdk-1.2.6)
@@ -22,7 +22,6 @@ set(DTB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/boards/${PLATFORM}.dtb)
 
 set(BOARD_DIR ${MICROKIT_SDK}/board/${MICROKIT_BOARD}/${MICROKIT_CONFIG})
 set(PICOLIBC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../picolibc_build/picolibc/aarch64-linux-gnu)
-set(PICOLIBC_DIR_1 ${CMAKE_CURRENT_SOURCE_DIR}/../picolibc_build_1/picolibc/aarch64-linux-gnu)
 
 set(CFLAGS -mcpu=${CPU} "-DDTB_PATH=\"${DTB_PATH}\"" -nostdlib -ffreestanding -Wall -Wno-unused-function)
 set(LDFLAGS -L${BOARD_DIR}/lib -nostdlib)
