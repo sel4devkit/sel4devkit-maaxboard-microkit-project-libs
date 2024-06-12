@@ -33,7 +33,7 @@ uint mmc_pending_length = 0;
 uintptr_t data_buffer;
 uintptr_t circular_buffer;
 
-// DMA state
+/* DMA state */
 static ps_dma_man_t dma_manager;
 uintptr_t dma_base;
 uintptr_t dma_cp_paddr;
@@ -41,7 +41,7 @@ size_t dma_size = 0x100000;
 
 void write_pending_mmc_log()
 {
-    /* Track the total number of bytes written to the log file*/
+    /* Track the total number of bytes written to the log file */
     static uint total_bytes_written = 0;
 
     /* Write all keypresses stored in the 'mmc_pending_tx_buf' buffer to the log file */
@@ -80,11 +80,9 @@ void write_pending_mmc_log()
 }
 
 void recieve_data_from_cypto(){
-    // printf("recieve_data_from_cypto\n");
     circular_buffer_t* cb = (circular_buffer_t*)circular_buffer;
     while(!circular_buffer_empty(cb)){
         char encrypted_char = circular_buffer_get(cb);
-        // printf("encrypted char %c\n", encrypted_char);
         /* Store the read character in the buffer of pending data to log to SD/MMC. */
         /* If the buffer is full then discard the character */
         if (mmc_pending_length < MMC_TX_BUF_LEN) {
@@ -101,7 +99,7 @@ init_post(void)
 
     const char *const_dev_paths[] = DEV_PATHS;
 
-    // Initialise uboot library
+    /* Initialise uboot library */
     initialise_uboot_drivers(
     dma_manager,
     incbin_device_tree_start,
@@ -116,7 +114,7 @@ init_post(void)
     circular_buffer_t* cb = (circular_buffer_t*)circular_buffer;
 
     while(true) {
-        // printf("In while loop\n");
+
         idle_cycle = true;
 
         /* Process notification of receipt of encrypted characters */
@@ -132,7 +130,6 @@ init_post(void)
             idle_cycle = false;
             last_log_file_write_time = uboot_monotonic_timer_get_us();
             write_pending_mmc_log();
-            // microkit_notify(7);
             break;
         }
 
@@ -157,7 +154,7 @@ init(void)
     
     const char *const_dev_paths[] = DEV_PATHS;
 
-    // Initialise uboot library
+    /* Initialise uboot library */
     initialise_uboot_drivers(
     dma_manager,
     incbin_device_tree_start,

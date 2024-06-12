@@ -20,11 +20,9 @@
 #define LC_a 97
 #define LC_z 122
 
-/* A buffer of encrypted characters to log to the SD/MMC card */
-#define MMC_TX_BUF_LEN 4096
 uintptr_t data_buffer;
 uintptr_t circular_buffer;
-int mmc_pending_length = 0;
+
 
 /* Encryption routine. For the purposes of the demo we use "rot 13" */
 char rot_13(char src)
@@ -51,7 +49,6 @@ char rot_13(char src)
 void write_buffer(uintptr_t memory_region, char encrypted_char){
     circular_buffer_t* cb = (circular_buffer_t*)circular_buffer;
     cb->lock = true;
-    // MIGHT NEED DELAY HERE TO STOP WRITING AND READING AT SAME TIME
 
     printf("Encrypted char %c\n", encrypted_char);
 
