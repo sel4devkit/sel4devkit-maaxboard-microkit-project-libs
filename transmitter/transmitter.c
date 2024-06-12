@@ -35,8 +35,8 @@ uintptr_t circular_buffer;
 
 // DMA state
 static ps_dma_man_t dma_manager;
-uintptr_t dma_base_2;
-uintptr_t dma_cp_paddr_2;
+uintptr_t dma_base;
+uintptr_t dma_cp_paddr;
 size_t dma_size = 0x100000;
 
 void write_pending_mmc_log()
@@ -157,7 +157,7 @@ init(void)
     microkit_dma_manager(&dma_manager);
 
     // Initialise DMA
-    microkit_dma_init(dma_base_2, dma_size,
+    microkit_dma_init(dma_base, dma_size,
         4096, 1);
 }
 
