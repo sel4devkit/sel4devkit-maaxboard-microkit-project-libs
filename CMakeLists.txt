@@ -8,7 +8,7 @@ project(${MICROKIT_APP} LANGUAGES C)
 
 set(LD ${TOOLCHAIN}-ld)
 set(CMAKE_ASM_COMPILER ${TOOLCHAIN}-as)
-set(MICROKIT_DIR /packages/microkit/auts_microkit_stable_plus_big_stack)
+set(MICROKIT_DIR /packages/microkit/sel4_modern_microkit_stable)
 
 # Microkit specific information
 set(MICROKIT_SDK ${MICROKIT_DIR}/release/microkit-sdk-1.2.6)

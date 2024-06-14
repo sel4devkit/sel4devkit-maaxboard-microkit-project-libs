@@ -96,7 +96,7 @@ unsigned long get_timer(unsigned long base) {
         return time - base;
 }
 
-void mdelay(unsigned int msec) {
+void wrap_mdelay(unsigned int msec) {
     unsigned long start_time = timer_get_us();
     unsigned long end_time = start_time + msec * 1000;
     while (timer_get_us() < end_time) {

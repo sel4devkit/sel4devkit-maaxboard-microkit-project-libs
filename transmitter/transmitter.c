@@ -135,7 +135,7 @@ init_post(void)
 
         /* Sleep on idle cycles to prevent busy looping */
         if (idle_cycle) {
-            mdelay(10);
+            wrap_mdelay(10);
         }
     }
 
