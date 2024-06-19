@@ -11,4 +11,4 @@ void shutdown_timer(void);
 
 void udelay(unsigned long);
 
-void mdelay(unsigned int);
+void wrap_mdelay(unsigned int);

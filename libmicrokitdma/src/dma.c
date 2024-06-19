@@ -24,8 +24,8 @@
 /* Check consistency of bookkeeping structures */
 #define DEBUG_DMA
 
-extern uintptr_t dma_base_2;
-extern uintptr_t dma_cp_paddr_2;
+extern uintptr_t dma_base;
+extern uintptr_t dma_cp_paddr;
 
 
 /* NOT THREAD SAFE. The code could be made thread safe relatively easily by
@@ -486,8 +486,8 @@ int microkit_dma_init(
 uintptr_t microkit_dma_get_paddr(
     void *ptr)
 {
-    int offset = (uint64_t)ptr - (int)dma_base_2;
-    return (uintptr_t*)(dma_cp_paddr_2+offset);
+    int offset = (uint64_t)ptr - (int)dma_base;
+    return (uintptr_t*)(dma_cp_paddr+offset);
 }
 
 /* Allocate a DMA region from a free region. */

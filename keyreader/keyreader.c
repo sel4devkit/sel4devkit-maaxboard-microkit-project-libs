@@ -19,10 +19,10 @@
 #include <plat/plat_support.h>
 #include <usb_platform_devices.h>
 
-// DMA state
+/* DMA state */
 static ps_dma_man_t dma_manager;
-uintptr_t dma_base_1;
-uintptr_t dma_cp_paddr_1;
+uintptr_t dma_base;
+uintptr_t dma_cp_paddr;
 size_t dma_size = 0x100000;
 
 void handle_keypress(void) {
@@ -43,14 +43,14 @@ init(void)
 {
     const char *const_dev_paths[] = DEV_PATHS;
 
-    // Initalise DMA manager
+    /* Initalise DMA manager */
     microkit_dma_manager(&dma_manager);
     
-    // Initialise DMA
-    microkit_dma_init(dma_base_1, dma_size,
+    /* Initialise DMA */
+    microkit_dma_init(dma_base, dma_size,
         4096, 1);
 
-    // Initialise uboot library
+    /* Initialise uboot library */
     initialise_uboot_drivers(
     dma_manager,
     incbin_device_tree_start,
