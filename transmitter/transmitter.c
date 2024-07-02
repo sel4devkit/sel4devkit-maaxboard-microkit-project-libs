@@ -31,6 +31,7 @@ char mmc_pending_tx_buf[MMC_TX_BUF_LEN];
 uint mmc_pending_length = 0;
 
 uintptr_t data_buffer;
+size_t data_size = 0x10000;
 uintptr_t circular_buffer;
 
 /* DMA state */
@@ -82,7 +83,7 @@ void write_pending_mmc_log()
 void recieve_data_from_cypto(){
     circular_buffer_t* cb = (circular_buffer_t*)circular_buffer;
     while(!circular_buffer_empty(cb)){
-        char encrypted_char = circular_buffer_get(cb);
+        char encrypted_char = circular_buffer_get(cb, data_buffer, data_size);
         /* Store the read character in the buffer of pending data to log to SD/MMC. */
         /* If the buffer is full then discard the character */
         if (mmc_pending_length < MMC_TX_BUF_LEN) {
@@ -118,7 +119,7 @@ init_post(void)
         idle_cycle = true;
 
         /* Process notification of receipt of encrypted characters */
-        if (cb->lock == false && !circular_buffer_empty(cb)) {
+        if (!circular_buffer_empty(cb)) {
             idle_cycle = false;
             recieve_data_from_cypto();
         }

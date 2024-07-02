@@ -17,5 +17,5 @@ void circular_buffer_free(circular_buffer_t *cb);
 void circular_buffer_reset(circular_buffer_t *cb);
 bool circular_buffer_full(circular_buffer_t *cb);
 bool circular_buffer_empty(circular_buffer_t *cb);
-void circular_buffer_put(circular_buffer_t *cb, char data);
-char circular_buffer_get(circular_buffer_t *cb);
+void circular_buffer_put(circular_buffer_t *cb, uintptr_t data_buffer, size_t data_size, char data);
+char circular_buffer_get(circular_buffer_t *cb, uintptr_t data_buffer, size_t data_size);
