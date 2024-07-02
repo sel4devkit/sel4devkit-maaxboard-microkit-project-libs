@@ -5,11 +5,10 @@
 
 typedef struct {
     int *buffer;     // pointer to the buffer memory
-    size_t head;     // index of the head
-    size_t tail;     // index of the tail
+    volatile size_t head __attribute__((aligned(8)));;     // index of the head aligned to 64 bits
+    volatile size_t tail __attribute__((aligned(8)));;     // index of the tail aligned to 64 bits
     size_t max;      // maximum number of elements
     bool full;       // flag to indicate if the buffer is full
-    bool lock;
 } circular_buffer_t;
 
 // Function prototypes
