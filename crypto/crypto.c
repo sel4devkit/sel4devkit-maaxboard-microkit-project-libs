@@ -54,9 +54,7 @@ void write_buffer(uintptr_t memory_region, char encrypted_char){
 
     circular_buffer_put(circular_buffer, data_buffer, data_size, encrypted_char);
 
-    if (circular_buffer_full(cb)){
-        microkit_notify(6);
-    }
+    microkit_notify(6);
 }
 
 void handle_character(char c){
