@@ -8,10 +8,10 @@ project(${MICROKIT_APP} LANGUAGES C)
 
 set(LD ${TOOLCHAIN}-ld)
 set(CMAKE_ASM_COMPILER ${TOOLCHAIN}-as)
-set(MICROKIT_DIR /packages/microkit/sel4_modern_microkit_stable)
+set(MICROKIT_DIR ${CMAKE_CURRENT_SOURCE_DIR}../microkit_build)
 
 # Microkit specific information
-set(MICROKIT_SDK ${MICROKIT_DIR}/release/microkit-sdk-1.2.6)
+set(MICROKIT_SDK ${MICROKIT_DIR}/out/microkit-sdk-1.3.0)
 set(MICROKIT_BOARD ${PLATFORM})
 set(MICROKIT_CONFIG debug)
 # Set python variables
