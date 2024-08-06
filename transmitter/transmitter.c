@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <microkit.h>
+#include <sel4/sel4.h>
 #include <sel4_dma.h>
 #include <uboot_drivers.h>
 #include <string.h>
@@ -30,6 +31,7 @@
 char mmc_pending_tx_buf[MMC_TX_BUF_LEN];
 uint mmc_pending_length = 0;
 
+/* Circular buffer state */
 uintptr_t data_buffer;
 size_t data_size = 0x10000;
 uintptr_t circular_buffer;
@@ -96,23 +98,6 @@ void recieve_data_from_cypto(){
 }
 
 void
-init_post(void)
-{   
-    printf("init_post of transmitter\n");
-
-    const char *const_dev_paths[] = DEV_PATHS;
-
-    /* Initialise uboot library */
-    initialise_uboot_drivers(
-    dma_manager,
-    incbin_device_tree_start,
-    /* List the device tree paths for the devices */
-    const_dev_paths, DEV_PATH_COUNT);
-
-    return 0;
-}
-
-void
 init(void)
 {
     /* Initalise DMA manager */
@@ -139,34 +124,23 @@ init(void)
     /* Now poll for events and handle them */
     bool idle_cycle;
     unsigned long last_log_file_write_time = 0;
-
-    circular_buffer_t* cb = (circular_buffer_t*)circular_buffer;
-
-    int loop_count = 0;
-
     while(true) {
 
         idle_cycle = true;
 
-        /* Process notification of receipt of encrypted characters */
-        if (loop_count % 100 == 0) {
+        /* Process encrypted characters and write to SD card */
+        if ((uboot_monotonic_timer_get_us() - last_log_file_write_time) >= LOG_FILE_WRITE_PERIOD_US) {
             idle_cycle = false;
             recieve_data_from_cypto();
-            crypto_notified = false;
-        }
-
-        /* Write any received encrypted characters to the log file (if sufficient
-         * time has passed from the previous write) */
-        if (mmc_pending_length > 0 &&
-               (uboot_monotonic_timer_get_us() - last_log_file_write_time) >= LOG_FILE_WRITE_PERIOD_US) {
-            idle_cycle = false;
-            last_log_file_write_time = uboot_monotonic_timer_get_us();
-            write_pending_mmc_log();
+            if (mmc_pending_length > 0){
+                write_pending_mmc_log();
+                last_log_file_write_time = uboot_monotonic_timer_get_us();
+            }
         }
 
         /* Sleep on idle cycles to prevent busy looping */
         if (idle_cycle) {
-            wrap_mdelay(10);
+            seL4_Yield();
         }
     }
 }

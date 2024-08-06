@@ -68,7 +68,7 @@ void handle_character(char c){
 
 void init()
 { 
-    size_t buffer_size = 5;
+    size_t buffer_size = 1000;
     circular_buffer = circular_buffer_init(circular_buffer, buffer_size, data_buffer);
 }
 
