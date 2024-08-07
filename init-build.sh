@@ -54,7 +54,7 @@ if [ "$user_input1" = "yes" ]; then
     ../scripts/do-aarch64-configure-nocrt -Dprefix=${PWD}/../../picolibc_build
     sudo ninja 
     sudo ninja install
-    cd ../../microkit
+    cd ../../project_libs
 fi
 
 # Build application 
