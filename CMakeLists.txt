@@ -63,9 +63,9 @@ add_executable(${MICROKIT_APP}.elf example/${PLATFORM}/${MICROKIT_APP}/${MICROKI
 endif()
 
 if(${MICROKIT_APP} STREQUAL "security_demo")
-add_executable(keyreader.elf keyreader/keyreader.c)
-add_executable(transmitter.elf transmitter/transmitter.c src/circular_buffer.c)
-add_executable(crypto.elf crypto/crypto.c src/circular_buffer.c)
+add_executable(keyreader.elf ${PROJECT_DIR}/keyreader/keyreader.c)
+add_executable(transmitter.elf ${PROJECT_DIR}/transmitter/transmitter.c src/circular_buffer.c)
+add_executable(crypto.elf ${PROJECT_DIR}/crypto/crypto.c src/circular_buffer.c)
 endif()
 
 if(${MICROKIT_APP} STREQUAL "uboot-driver-example")
