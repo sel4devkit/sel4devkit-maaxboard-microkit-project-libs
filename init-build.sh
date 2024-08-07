@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Microkit path
-microkit_path=${PWD}
+library_path=${PWD}
 
 # Initialize variables to store the values of the command-line options
 MICROKIT_APP=""
@@ -63,6 +63,6 @@ mkdir example/maaxboard/$MICROKIT_APP/build
 rm -rf example/maaxboard/$MICROKIT_APP/example-build
 mkdir example/maaxboard/$MICROKIT_APP/example-build
 cd example/maaxboard/$MICROKIT_APP/build
-cmake -DMICROKIT_APP=$MICROKIT_APP -DPLATFORM=$PLATFORM $microkit_path
+cmake -DMICROKIT_APP=$MICROKIT_APP -DPLATFORM=$PLATFORM $library_path
 make 
-echo "Built image is here: ${microkit_path}/example/${PLATFORM}/${MICROKIT_APP}/example-build/sel4_image.img" 
+echo "Built image is here: ${library_path}/example/${PLATFORM}/${MICROKIT_APP}/example-build/sel4_image.img" 
