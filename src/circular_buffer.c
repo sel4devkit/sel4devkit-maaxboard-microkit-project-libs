@@ -37,9 +37,6 @@ void circular_buffer_put(circular_buffer_t *cb, uintptr_t data_buffer, size_t da
 
     cb->buffer[cb->head] = data;
 
-    printf("cb head %c\n", cb->buffer[cb->head]);
-    printf("cb tail %c\n", cb->buffer[cb->tail]);
-
     // Ensure buffer written before updating head
     __sync_synchronize(); 
 
