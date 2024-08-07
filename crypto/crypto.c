@@ -21,6 +21,7 @@
 #define LC_z 122
 
 uintptr_t data_buffer;
+size_t data_size = 0x10000;
 uintptr_t circular_buffer;
 
 
@@ -48,17 +49,12 @@ char rot_13(char src)
 
 void write_buffer(uintptr_t memory_region, char encrypted_char){
     circular_buffer_t* cb = (circular_buffer_t*)circular_buffer;
-    cb->lock = true;
 
     printf("Encrypted char %c\n", encrypted_char);
 
-    circular_buffer_put(circular_buffer, encrypted_char);
+    circular_buffer_put(circular_buffer, data_buffer, data_size, encrypted_char);
 
-    cb->lock = false;
-
-    if (circular_buffer_full(cb)){
-        microkit_notify(6);
-    }
+    microkit_notify(6);
 }
 
 void handle_character(char c){
@@ -72,7 +68,7 @@ void handle_character(char c){
 
 void init()
 { 
-    size_t buffer_size = 5;
+    size_t buffer_size = 1000;
     circular_buffer = circular_buffer_init(circular_buffer, buffer_size, data_buffer);
 }
 
