@@ -8,15 +8,13 @@ project(${MICROKIT_APP} LANGUAGES C)
 
 set(LD ${TOOLCHAIN}-ld)
 set(CMAKE_ASM_COMPILER ${TOOLCHAIN}-as)
-set(MICROKIT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../microkit_build)
+set(MICROKIT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../microkit)
 
 # Microkit specific information
 set(MICROKIT_SDK ${MICROKIT_DIR}/out/microkit-sdk-1.3.0)
 set(MICROKIT_BOARD ${PLATFORM})
 set(MICROKIT_CONFIG debug)
-# Set python variables
-set(PYTHONPATH /usr/bin/python)
-set(MICROKIT_TOOL "python3 -m microkit")
+
 # Set dtb path
 set(DTB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/boards/${PLATFORM}.dtb)
 
