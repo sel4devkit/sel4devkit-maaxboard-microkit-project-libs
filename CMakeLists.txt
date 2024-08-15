@@ -11,7 +11,7 @@ set(CMAKE_ASM_COMPILER ${TOOLCHAIN}-as)
 set(MICROKIT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../microkit)
 
 # Microkit specific information
-set(MICROKIT_SDK ${MICROKIT_DIR}/out/microkit-sdk-1.3.0)
+set(MICROKIT_SDK ${MICROKIT_DIR}/out/microkit-sdk-1.4.0)
 set(MICROKIT_BOARD ${PLATFORM})
 set(MICROKIT_CONFIG debug)
 
