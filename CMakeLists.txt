@@ -25,7 +25,7 @@ set(CFLAGS -mcpu=${CPU} "-DDTB_PATH=\"${DTB_PATH}\"" -nostdlib -ffreestanding -W
 set(LDFLAGS -L${BOARD_DIR}/lib -nostdlib)
 set(LIBS -lmicrokit -Tmicrokit.ld -lgcc -L${PICOLIBC_DIR}/lib -lc -lm -lgcc)
 
-set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/example/${PLATFORM}/${MICROKIT_APP})
+set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../examples/${PLATFORM}/${MICROKIT_APP})
 set(BUILD_DIR ${PROJECT_DIR}/build)
 set(EXAMPLE_BUILD_DIR ${PROJECT_DIR}/example-build)
 set(IMAGE_FILE ${EXAMPLE_BUILD_DIR}/sel4_image.img)
@@ -34,7 +34,7 @@ set(REPORT_FILE ${EXAMPLE_BUILD_DIR}/report.txt)
 set(libUbootPlatform ${PLATFORM})
 
 # Set Macros depending on the application 
-if(${MICROKIT_APP} STREQUAL "uboot-driver-example")
+if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
     set(IMAGES "${MICROKIT_APP}.elf")
     add_definitions(-DUBOOT_DRIVER_EXAMPLE)
 endif()
@@ -56,8 +56,8 @@ target_include_directories(microkitdma PUBLIC
 # Transform image files
 list(TRANSFORM IMAGES PREPEND "${BUILD_DIR}/")
 
-if(${MICROKIT_APP} STREQUAL "uboot-driver-example")
-add_executable(${MICROKIT_APP}.elf example/${PLATFORM}/${MICROKIT_APP}/${MICROKIT_APP}.c)
+if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
+add_executable(${MICROKIT_APP}.elf ${PROJECT_DIR}/${MICROKIT_APP}.c)
 endif()
 
 if(${MICROKIT_APP} STREQUAL "security_demo")
@@ -66,7 +66,7 @@ add_executable(transmitter.elf ${PROJECT_DIR}/transmitter/transmitter.c src/circ
 add_executable(crypto.elf ${PROJECT_DIR}/crypto/crypto.c src/circular_buffer.c)
 endif()
 
-if(${MICROKIT_APP} STREQUAL "uboot-driver-example")
+if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
 # Linker - app
 target_link_options(${MICROKIT_APP}.elf PRIVATE ${LDFLAGS})
 target_compile_options(${MICROKIT_APP}.elf PRIVATE ${CFLAGS})
