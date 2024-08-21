@@ -54,15 +54,15 @@ if [ "$user_input1" = "yes" ]; then
     ../scripts/do-aarch64-configure-nocrt -Dprefix=${PWD}/../../picolibc_build
     sudo ninja 
     sudo ninja install
-    cd ../../project_libs
+    cd ../../
 fi
 
 # Build application 
-rm -rf example/maaxboard/$MICROKIT_APP/build
-mkdir example/maaxboard/$MICROKIT_APP/build
-rm -rf example/maaxboard/$MICROKIT_APP/example-build
-mkdir example/maaxboard/$MICROKIT_APP/example-build
-cd example/maaxboard/$MICROKIT_APP/build
+rm -rf examples/maaxboard/$MICROKIT_APP/build
+mkdir examples/maaxboard/$MICROKIT_APP/build
+rm -rf examples/maaxboard/$MICROKIT_APP/example-build
+mkdir examples/maaxboard/$MICROKIT_APP/example-build
+cd examples/maaxboard/$MICROKIT_APP/build
 cmake -DMICROKIT_APP=$MICROKIT_APP -DPLATFORM=$PLATFORM $library_path
 make 
 echo "Built image is here: ${library_path}/example/${PLATFORM}/${MICROKIT_APP}/example-build/sel4_image.img" 
