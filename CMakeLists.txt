@@ -8,10 +8,10 @@ project(${MICROKIT_APP} LANGUAGES C)
 
 set(LD ${TOOLCHAIN}-ld)
 set(CMAKE_ASM_COMPILER ${TOOLCHAIN}-as)
-set(MICROKIT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../microkit)
+set(MICROKIT_DIR /host/sel4devkit-maaxboard-microkit)
 
 # Microkit specific information
-set(MICROKIT_SDK ${MICROKIT_DIR}/out/microkit-sdk-1.3.0)
+set(MICROKIT_SDK ${MICROKIT_DIR}/out/microkit-sdk-1.4.1)
 set(MICROKIT_BOARD ${PLATFORM})
 set(MICROKIT_CONFIG debug)
 
@@ -33,6 +33,14 @@ set(REPORT_FILE ${EXAMPLE_BUILD_DIR}/report.txt)
 
 set(libUbootPlatform ${PLATFORM})
 
+# sddf specific information
+set(DRIV_DIR imx)
+set(UART_DRIV_DIR imx)
+set(TIMER_DRV_DIR imx)
+set(CPU cortex-a53)
+set(SDDF ${CMAKE_CURRENT_SOURCE_DIR}/sddf)
+set(ETHERNET_DRIVER ${SDDF}/drivers/network/${DRIV_DIR})
+
 # Set Macros depending on the application 
 if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
     set(IMAGES "${MICROKIT_APP}.elf")
@@ -40,7 +48,7 @@ if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
 endif()
 
 if(${MICROKIT_APP} STREQUAL "security_demo")
-    set(IMAGES "keyreader.elf" "transmitter.elf" "crypto.elf")
+    set(IMAGES "keyreader.elf" "transmitter.elf" "crypto.elf" "eth_driver.elf")
     add_definitions(-DSECURITY_DEMO)
 endif()
 
@@ -53,6 +61,9 @@ target_include_directories(microkitdma PUBLIC
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/")
 
+# Add sddf library
+# add_subdirectory(sddf)
+
 # Transform image files
 list(TRANSFORM IMAGES PREPEND "${BUILD_DIR}/")
 
@@ -64,6 +75,7 @@ if(${MICROKIT_APP} STREQUAL "security_demo")
 add_executable(keyreader.elf ${PROJECT_DIR}/keyreader/keyreader.c)
 add_executable(transmitter.elf ${PROJECT_DIR}/transmitter/transmitter.c src/circular_buffer.c)
 add_executable(crypto.elf ${PROJECT_DIR}/crypto/crypto.c src/circular_buffer.c)
+add_executable(eth_driver.elf ${ETHERNET_DRIVER}/ethernet.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_debug.c)
 endif()
 
 if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
@@ -124,6 +136,20 @@ target_link_libraries(crypto.elf PUBLIC ubootdrivers utils)
 get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(crypto.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
 target_link_libraries(crypto.elf PRIVATE ${LIBS})
+
+# Linker - eth_driver
+target_link_options(eth_driver.elf PRIVATE ${LDFLAGS})
+target_compile_options(eth_driver.elf PRIVATE ${CFLAGS})
+target_include_directories(eth_driver.elf PRIVATE 
+    "${BOARD_DIR}/include"  
+    "${PICOLIBC_DIR}/include/"
+    "include"
+    "${ETHERNET_DRIVER}"
+    "${SDDF}/include"
+    "${SDDF}/examples/echo_server/include/ethernet_config"
+)
+target_link_libraries(eth_driver.elf PUBLIC utils)
+target_link_libraries(eth_driver.elf PRIVATE ${LIBS})
 endif()
 
 add_custom_target(make-img 
