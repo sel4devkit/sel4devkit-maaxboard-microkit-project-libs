@@ -40,7 +40,9 @@ set(TIMER_DRV_DIR imx)
 set(CPU cortex-a53)
 set(SDDF ${CMAKE_CURRENT_SOURCE_DIR}/sddf)
 set(ETHERNET_DRIVER ${SDDF}/drivers/network/${DRIV_DIR})
-
+set(ECHO_SERVER ${SDDF}/examples/echo_server)
+set(LWIP ${SDDF}/network/ipstacks/lwip)
+  
 # Set Macros depending on the application 
 if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
     set(IMAGES "${MICROKIT_APP}.elf")
@@ -48,7 +50,7 @@ if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
 endif()
 
 if(${MICROKIT_APP} STREQUAL "security_demo")
-    set(IMAGES "keyreader.elf" "transmitter.elf" "crypto.elf" "eth_driver.elf")
+    set(IMAGES "keyreader.elf" "transmitter.elf" "crypto.elf" "eth_driver.elf" "lwip.elf")
     add_definitions(-DSECURITY_DEMO)
 endif()
 
@@ -64,6 +66,9 @@ target_include_directories(microkitdma PUBLIC
 # Add sddf library
 # add_subdirectory(sddf)
 
+# Add lwip library
+add_subdirectory(${SDDF}/network/ipstacks/lwip)
+
 # Transform image files
 list(TRANSFORM IMAGES PREPEND "${BUILD_DIR}/")
 
@@ -76,6 +81,7 @@ add_executable(keyreader.elf ${PROJECT_DIR}/keyreader/keyreader.c)
 add_executable(transmitter.elf ${PROJECT_DIR}/transmitter/transmitter.c src/circular_buffer.c)
 add_executable(crypto.elf ${PROJECT_DIR}/crypto/crypto.c src/circular_buffer.c)
 add_executable(eth_driver.elf ${ETHERNET_DRIVER}/ethernet.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_debug.c)
+add_executable(lwip.elf ${ECHO_SERVER}/lwip.c ${ECHO_SERVER}/utilization_socket.c ${ECHO_SERVER}/udp_echo_socket.c ${ECHO_SERVER}/tcp_echo_socket.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c)
 endif()
 
 if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
@@ -141,15 +147,29 @@ target_link_libraries(crypto.elf PRIVATE ${LIBS})
 target_link_options(eth_driver.elf PRIVATE ${LDFLAGS})
 target_compile_options(eth_driver.elf PRIVATE ${CFLAGS})
 target_include_directories(eth_driver.elf PRIVATE 
-    "${BOARD_DIR}/include"  
-    "${PICOLIBC_DIR}/include/"
+    "${BOARD_DIR}/include"
     "include"
     "${ETHERNET_DRIVER}"
     "${SDDF}/include"
-    "${SDDF}/examples/echo_server/include/ethernet_config"
+    "${ECHO_SERVER}/include/ethernet_config"
 )
 target_link_libraries(eth_driver.elf PUBLIC utils)
 target_link_libraries(eth_driver.elf PRIVATE ${LIBS})
+
+# Linker - lwip
+target_link_options(lwip.elf PRIVATE ${LDFLAGS})
+target_compile_options(lwip.elf PRIVATE ${CFLAGS})
+target_include_directories(lwip.elf PRIVATE 
+    "${BOARD_DIR}/include"  
+    "include"
+    "${SDDF}/include"
+    "${ECHO_SERVER}/include/ethernet_config"
+    "${ECHO_SERVER}/include/serial_config"
+    "${ECHO_SERVER}/include/lwip"
+    "${LWIP}/src/include"
+)
+target_link_libraries(lwip.elf PUBLIC lwIP utils)
+target_link_libraries(lwip.elf PRIVATE ${LIBS})
 endif()
 
 add_custom_target(make-img 
