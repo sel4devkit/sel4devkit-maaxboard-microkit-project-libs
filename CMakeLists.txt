@@ -40,6 +40,7 @@ set(TIMER_DRV_DIR imx)
 set(CPU cortex-a53)
 set(SDDF ${CMAKE_CURRENT_SOURCE_DIR}/sddf)
 set(ETHERNET_DRIVER ${SDDF}/drivers/network/${DRIV_DIR})
+set(NETWORK_COMPONENTS ${SDDF}/network/components/)
 set(ECHO_SERVER ${SDDF}/examples/echo_server)
 set(LWIP ${SDDF}/network/ipstacks/lwip)
   
@@ -50,7 +51,7 @@ if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
 endif()
 
 if(${MICROKIT_APP} STREQUAL "security_demo")
-    set(IMAGES "keyreader.elf" "transmitter.elf" "crypto.elf" "eth_driver.elf" "lwip.elf")
+    set(IMAGES "keyreader.elf" "transmitter.elf" "crypto.elf" "eth_driver.elf" "lwip.elf" "network_virt_rx.elf" "network_virt_tx.elf")
     add_definitions(-DSECURITY_DEMO)
 endif()
 
@@ -82,6 +83,8 @@ add_executable(transmitter.elf ${PROJECT_DIR}/transmitter/transmitter.c src/circ
 add_executable(crypto.elf ${PROJECT_DIR}/crypto/crypto.c src/circular_buffer.c)
 add_executable(eth_driver.elf ${ETHERNET_DRIVER}/ethernet.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_debug.c)
 add_executable(lwip.elf ${ECHO_SERVER}/lwip.c ${ECHO_SERVER}/utilization_socket.c ${ECHO_SERVER}/udp_echo_socket.c ${ECHO_SERVER}/tcp_echo_socket.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c)
+add_executable(network_virt_rx.elf ${NETWORK_COMPONENTS}/virt_rx.c ${SDDF}/util/assert.c ${SDDF}/util/cache.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c)
+add_executable(network_virt_tx.elf ${NETWORK_COMPONENTS}/virt_tx.c ${SDDF}/util/assert.c ${SDDF}/util/cache.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c)
 endif()
 
 if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
@@ -167,9 +170,36 @@ target_include_directories(lwip.elf PRIVATE
     "${ECHO_SERVER}/include/serial_config"
     "${ECHO_SERVER}/include/lwip"
     "${LWIP}/src/include"
+    "${PICOLIBC_DIR}/include/"
 )
 target_link_libraries(lwip.elf PUBLIC lwIP utils)
 target_link_libraries(lwip.elf PRIVATE ${LIBS})
+
+# Linker - network_virt_rx
+target_link_options(network_virt_rx.elf PRIVATE ${LDFLAGS})
+target_compile_options(network_virt_rx.elf PRIVATE ${CFLAGS})
+target_include_directories(network_virt_rx.elf PRIVATE 
+    "${BOARD_DIR}/include"
+    "include"
+    "${ETHERNET_DRIVER}"
+    "${SDDF}/include"
+    "${ECHO_SERVER}/include/ethernet_config"
+)
+target_link_libraries(network_virt_rx.elf PUBLIC utils)
+target_link_libraries(network_virt_rx.elf PRIVATE ${LIBS})
+
+# Linker - network_virt_tx
+target_link_options(network_virt_tx.elf PRIVATE ${LDFLAGS})
+target_compile_options(network_virt_tx.elf PRIVATE ${CFLAGS})
+target_include_directories(network_virt_tx.elf PRIVATE 
+    "${BOARD_DIR}/include"
+    "include"
+    "${ETHERNET_DRIVER}"
+    "${SDDF}/include"
+    "${ECHO_SERVER}/include/ethernet_config"
+)
+target_link_libraries(network_virt_tx.elf PUBLIC utils)
+target_link_libraries(network_virt_tx.elf PRIVATE ${LIBS})
 endif()
 
 add_custom_target(make-img 
