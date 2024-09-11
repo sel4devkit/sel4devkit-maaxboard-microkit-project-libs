@@ -43,6 +43,10 @@ set(ETHERNET_DRIVER ${SDDF}/drivers/network/${DRIV_DIR})
 set(NETWORK_COMPONENTS ${SDDF}/network/components/)
 set(ECHO_SERVER ${SDDF}/examples/echo_server)
 set(LWIP ${SDDF}/network/ipstacks/lwip)
+set(BENCHMARK ${SDDF}/benchmark)
+set(SERIAL ${SDDF}/drivers/serial/${UART_DRIV_DIR})
+set(SERIAL_COMPONENTS ${SDDF}/serial/components)
+set(TIMER_DRIVER ${SDDF}/drivers/timer/${TIMER_DRV_DIR})
   
 # Set Macros depending on the application 
 if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
@@ -51,7 +55,7 @@ if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
 endif()
 
 if(${MICROKIT_APP} STREQUAL "security_demo")
-    set(IMAGES "keyreader.elf" "transmitter.elf" "crypto.elf" "eth_driver.elf" "lwip.elf" "network_virt_rx.elf" "network_virt_tx.elf" "copy.elf")
+    set(IMAGES "keyreader.elf" "transmitter.elf" "crypto.elf" "eth_driver.elf" "lwip.elf" "network_virt_rx.elf" "network_virt_tx.elf" "copy.elf" "idle.elf" "benchmark.elf" "uart_driver.elf" "serial_virt_tx.elf" "serial_virt_rx.elf")
     add_definitions(-DSECURITY_DEMO)
 endif()
 
@@ -86,6 +90,12 @@ add_executable(lwip.elf ${ECHO_SERVER}/lwip.c ${ECHO_SERVER}/utilization_socket.
 add_executable(network_virt_rx.elf ${NETWORK_COMPONENTS}/virt_rx.c ${SDDF}/util/assert.c ${SDDF}/util/cache.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c)
 add_executable(network_virt_tx.elf ${NETWORK_COMPONENTS}/virt_tx.c ${SDDF}/util/assert.c ${SDDF}/util/cache.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c)
 add_executable(copy.elf ${NETWORK_COMPONENTS}/copy.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c)
+add_executable(idle.elf ${BENCHMARK}/idle.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c ${SDDF}/util/putchar_serial.c)
+add_executable(benchmark.elf ${BENCHMARK}/benchmark.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c ${SDDF}/util/putchar_serial.c)
+add_executable(uart_driver.elf ${SERIAL}/uart.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c ${SDDF}/util/putchar_serial.c)
+add_executable(serial_virt_tx.elf ${SERIAL_COMPONENTS}/virt_tx.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c ${SDDF}/util/putchar_serial.c)
+add_executable(serial_virt_rx.elf ${SERIAL_COMPONENTS}/virt_rx.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c ${SDDF}/util/putchar_serial.c)
+add_executable(timer_driver.elf ${TIMER_DRIVER}/timer.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c ${SDDF}/util/putchar_serial.c)
 endif()
 
 if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
@@ -214,6 +224,83 @@ target_include_directories(copy.elf PRIVATE
 )
 target_link_libraries(copy.elf PUBLIC utils)
 target_link_libraries(copy.elf PRIVATE ${LIBS})
+
+# Linker - idle
+target_link_options(idle.elf PRIVATE ${LDFLAGS})
+target_compile_options(idle.elf PRIVATE ${CFLAGS})
+target_include_directories(idle.elf PRIVATE 
+    "${BOARD_DIR}/include"
+    "include"
+    "${SDDF}/include"
+)
+target_link_libraries(idle.elf PUBLIC utils)
+target_link_libraries(idle.elf PRIVATE ${LIBS})
+
+# Linker - benchmark
+target_link_options(benchmark.elf PRIVATE ${LDFLAGS})
+target_compile_options(benchmark.elf PRIVATE ${CFLAGS})
+target_include_directories(benchmark.elf PRIVATE 
+    "${BOARD_DIR}/include"
+    "include"
+    "${SDDF}/include"
+    "${ECHO_SERVER}/include/serial_config"
+    "${ECHO_SERVER}/include/ethernet_config"
+)
+target_link_libraries(benchmark.elf PUBLIC utils)
+target_link_libraries(benchmark.elf PRIVATE ${LIBS})
+
+# Linker - uart_driver
+target_link_options(uart_driver.elf PRIVATE ${LDFLAGS})
+target_compile_options(uart_driver.elf PRIVATE ${CFLAGS})
+target_include_directories(uart_driver.elf PRIVATE 
+    "${BOARD_DIR}/include"
+    "include"
+    "${SDDF}/include"
+    "${ECHO_SERVER}/include/serial_config"
+    "${ECHO_SERVER}/include/ethernet_config"
+    "${SERIAL}/include"
+)
+target_link_libraries(uart_driver.elf PUBLIC utils)
+target_link_libraries(uart_driver.elf PRIVATE ${LIBS})
+
+# Linker - serial_virt_tx
+target_link_options(serial_virt_tx.elf PRIVATE ${LDFLAGS})
+target_compile_options(serial_virt_tx.elf PRIVATE ${CFLAGS})
+target_include_directories(serial_virt_tx.elf PRIVATE 
+    "${BOARD_DIR}/include"
+    "include"
+    "${SDDF}/include"
+    "${ECHO_SERVER}/include/serial_config"
+    "${ECHO_SERVER}/include/ethernet_config"
+    "${SERIAL_COMPONENTS}/include"
+)
+target_link_libraries(serial_virt_tx.elf PUBLIC utils)
+target_link_libraries(serial_virt_tx.elf PRIVATE ${LIBS})
+
+# Linker - serial_virt_rx
+target_link_options(serial_virt_rx.elf PRIVATE ${LDFLAGS})
+target_compile_options(serial_virt_rx.elf PRIVATE ${CFLAGS})
+target_include_directories(serial_virt_rx.elf PRIVATE 
+    "${BOARD_DIR}/include"
+    "include"
+    "${SDDF}/include"
+    "${SDDF}/examples/serial/include/serial_config"
+    "${ECHO_SERVER}/include/ethernet_config"
+    "${SERIAL_COMPONENTS}/include"
+)
+target_link_libraries(serial_virt_rx.elf PUBLIC utils)
+target_link_libraries(serial_virt_rx.elf PRIVATE ${LIBS})
+
+# Linker - timer_driver
+target_link_options(timer_driver.elf PRIVATE ${LDFLAGS})
+target_compile_options(timer_driver.elf PRIVATE ${CFLAGS})
+target_include_directories(timer_driver.elf PRIVATE 
+    "${BOARD_DIR}/include"
+    "include"
+    "${SDDF}/include"
+)
+target_link_libraries(timer_driver.elf PUBLIC utils)
+target_link_libraries(timer_driver.elf PRIVATE ${LIBS})
 endif()
 
 add_custom_target(make-img 
