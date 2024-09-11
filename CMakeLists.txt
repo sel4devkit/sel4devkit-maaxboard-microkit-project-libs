@@ -51,7 +51,7 @@ if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
 endif()
 
 if(${MICROKIT_APP} STREQUAL "security_demo")
-    set(IMAGES "keyreader.elf" "transmitter.elf" "crypto.elf" "eth_driver.elf" "lwip.elf" "network_virt_rx.elf" "network_virt_tx.elf")
+    set(IMAGES "keyreader.elf" "transmitter.elf" "crypto.elf" "eth_driver.elf" "lwip.elf" "network_virt_rx.elf" "network_virt_tx.elf" "copy.elf")
     add_definitions(-DSECURITY_DEMO)
 endif()
 
@@ -85,6 +85,7 @@ add_executable(eth_driver.elf ${ETHERNET_DRIVER}/ethernet.c ${SDDF}/util/assert.
 add_executable(lwip.elf ${ECHO_SERVER}/lwip.c ${ECHO_SERVER}/utilization_socket.c ${ECHO_SERVER}/udp_echo_socket.c ${ECHO_SERVER}/tcp_echo_socket.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c)
 add_executable(network_virt_rx.elf ${NETWORK_COMPONENTS}/virt_rx.c ${SDDF}/util/assert.c ${SDDF}/util/cache.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c)
 add_executable(network_virt_tx.elf ${NETWORK_COMPONENTS}/virt_tx.c ${SDDF}/util/assert.c ${SDDF}/util/cache.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c)
+add_executable(copy.elf ${NETWORK_COMPONENTS}/copy.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c)
 endif()
 
 if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
@@ -200,6 +201,19 @@ target_include_directories(network_virt_tx.elf PRIVATE
 )
 target_link_libraries(network_virt_tx.elf PUBLIC utils)
 target_link_libraries(network_virt_tx.elf PRIVATE ${LIBS})
+
+# Linker - copy
+target_link_options(copy.elf PRIVATE ${LDFLAGS})
+target_compile_options(copy.elf PRIVATE ${CFLAGS})
+target_include_directories(copy.elf PRIVATE 
+    "${BOARD_DIR}/include"
+    "include"
+    "${ETHERNET_DRIVER}"
+    "${SDDF}/include"
+    "${ECHO_SERVER}/include/ethernet_config"
+)
+target_link_libraries(copy.elf PUBLIC utils)
+target_link_libraries(copy.elf PRIVATE ${LIBS})
 endif()
 
 add_custom_target(make-img 
