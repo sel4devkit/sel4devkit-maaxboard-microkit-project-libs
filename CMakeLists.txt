@@ -64,8 +64,11 @@ target_include_directories(microkitdma PUBLIC
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/")
 
+
 # Add lwip library
-add_subdirectory(${SDDF}/network/ipstacks/lwip)
+if(${MICROKIT_APP} STREQUAL "security_demo")
+    add_subdirectory(${SDDF}/network/ipstacks/lwip)
+endif()
 
 # Transform image files
 list(TRANSFORM IMAGES PREPEND "${BUILD_DIR}/")
