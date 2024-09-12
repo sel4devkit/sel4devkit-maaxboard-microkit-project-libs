@@ -37,15 +37,11 @@ set(libUbootPlatform ${PLATFORM})
 set(DRIV_DIR imx)
 set(UART_DRIV_DIR imx)
 set(TIMER_DRV_DIR imx)
-set(CPU cortex-a53)
 set(SDDF ${CMAKE_CURRENT_SOURCE_DIR}/sddf)
 set(ETHERNET_DRIVER ${SDDF}/drivers/network/${DRIV_DIR})
 set(NETWORK_COMPONENTS ${SDDF}/network/components/)
 set(ECHO_SERVER ${SDDF}/examples/echo_server)
 set(LWIP ${SDDF}/network/ipstacks/lwip)
-set(BENCHMARK ${SDDF}/benchmark)
-set(SERIAL ${SDDF}/drivers/serial/${UART_DRIV_DIR})
-set(SERIAL_COMPONENTS ${SDDF}/serial/components)
 set(TIMER_DRIVER ${SDDF}/drivers/timer/${TIMER_DRV_DIR})
   
 # Set Macros depending on the application 
@@ -55,7 +51,7 @@ if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
 endif()
 
 if(${MICROKIT_APP} STREQUAL "security_demo")
-    set(IMAGES "keyreader.elf" "transmitter.elf" "crypto.elf" "eth_driver.elf" "lwip.elf" "network_virt_rx.elf" "network_virt_tx.elf" "copy.elf")
+    set(IMAGES "keyreader.elf" "transmitter.elf" "crypto.elf" "eth.elf" "lwip.elf" "network_virt_rx.elf" "network_virt_tx.elf" "copy.elf")
     add_definitions(-DSECURITY_DEMO)
 endif()
 
@@ -68,15 +64,13 @@ target_include_directories(microkitdma PUBLIC
     "libubootdrivers/include/public_api/"
     "${PICOLIBC_DIR}/include/")
 
-# Add sddf library
-# add_subdirectory(sddf)
-
 # Add lwip library
 add_subdirectory(${SDDF}/network/ipstacks/lwip)
 
 # Transform image files
 list(TRANSFORM IMAGES PREPEND "${BUILD_DIR}/")
 
+# Add the executable
 if(${MICROKIT_APP} STREQUAL "uboot_driver_example")
 add_executable(${MICROKIT_APP}.elf ${PROJECT_DIR}/${MICROKIT_APP}.c)
 endif()
@@ -85,7 +79,7 @@ if(${MICROKIT_APP} STREQUAL "security_demo")
 add_executable(keyreader.elf ${PROJECT_DIR}/keyreader/keyreader.c)
 add_executable(transmitter.elf ${PROJECT_DIR}/transmitter/transmitter.c src/circular_buffer.c)
 add_executable(crypto.elf ${PROJECT_DIR}/crypto/crypto.c src/circular_buffer.c)
-add_executable(eth_driver.elf ${ETHERNET_DRIVER}/ethernet.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_debug.c)
+add_executable(eth.elf ${ETHERNET_DRIVER}/ethernet.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_debug.c)
 add_executable(lwip.elf ${ECHO_SERVER}/lwip.c ${ECHO_SERVER}/utilization_socket.c ${ECHO_SERVER}/udp_echo_socket.c ${ECHO_SERVER}/tcp_echo_socket.c ${SDDF}/util/assert.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c)
 add_executable(network_virt_rx.elf ${NETWORK_COMPONENTS}/virt_rx.c ${SDDF}/util/assert.c ${SDDF}/util/cache.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c)
 add_executable(network_virt_tx.elf ${NETWORK_COMPONENTS}/virt_tx.c ${SDDF}/util/assert.c ${SDDF}/util/cache.c ${SDDF}/util/printf.c ${SDDF}/util/putchar_serial.c)
@@ -152,18 +146,18 @@ get_target_property(UBOOTDRIVERS_INCLUDE_DIRS ubootdrivers INTERFACE_INCLUDE_DIR
 target_include_directories(crypto.elf PRIVATE UBOOTDRIVERS_INCLUDE_DIRS)
 target_link_libraries(crypto.elf PRIVATE ${LIBS})
 
-# Linker - eth_driver
-target_link_options(eth_driver.elf PRIVATE ${LDFLAGS})
-target_compile_options(eth_driver.elf PRIVATE ${CFLAGS})
-target_include_directories(eth_driver.elf PRIVATE 
+# Linker - eth
+target_link_options(eth.elf PRIVATE ${LDFLAGS})
+target_compile_options(eth.elf PRIVATE ${CFLAGS})
+target_include_directories(eth.elf PRIVATE 
     "${BOARD_DIR}/include"
     "include"
     "${ETHERNET_DRIVER}"
     "${SDDF}/include"
     "${ECHO_SERVER}/include/ethernet_config"
 )
-target_link_libraries(eth_driver.elf PUBLIC utils)
-target_link_libraries(eth_driver.elf PRIVATE ${LIBS})
+target_link_libraries(eth.elf PUBLIC utils)
+target_link_libraries(eth.elf PRIVATE ${LIBS})
 
 # Linker - lwip
 target_link_options(lwip.elf PRIVATE ${LDFLAGS})
@@ -232,6 +226,7 @@ target_link_libraries(timer_driver.elf PUBLIC utils)
 target_link_libraries(timer_driver.elf PRIVATE ${LIBS})
 endif()
 
+# Build the image
 add_custom_target(make-img 
     ALL DEPENDS ${IMAGES} "${SYSTEM_FILE}" COMMAND bash -c
     "${MICROKIT_SDK}/bin/microkit ../${MICROKIT_APP}.system --search-path ${EXAMPLE_BUILD_DIR} --board ${MICROKIT_BOARD} --config ${MICROKIT_CONFIG} --output ${IMAGE_FILE} --report ${REPORT_FILE}")
